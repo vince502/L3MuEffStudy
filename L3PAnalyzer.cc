@@ -66,6 +66,22 @@ private:
     }
   }
 
+  TClonesArray* TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA           ; 
+  TClonesArray* TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA      ; 
+  TClonesArray* TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA      ; 
+  TClonesArray* TrackProducer_hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA      ; 
+  TClonesArray* TrackProducer_hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA; 
+  TClonesArray* TrackProducer_hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA; 
+  TClonesArray* TrackProducer_hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA; 
+
+  TClonesArray* L3MuonProducer_hltL3MuonsIterL3OIPPOnAA;
+  TClonesArray* L3MuonProducer_hltL3MuonsIterL3IOPPOnAA;
+  TClonesArray* L3MuonProducer_hltIterL3GlbMuonPPOnAA  ;
+
+  TClonesArray* L3MuonCandidateProducer_hltIterL3OIL3MuonCandidatesPPOnAA      ;
+  TClonesArray* L3MuonCandidateProducerFromMuons_hltIterL3MuonCandidatesPPOnAA ;
+
+  TClonesArray* ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA;
 
 
 };
@@ -231,7 +247,7 @@ void L3PAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
       fillArray( TrackProducer_hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA,hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
       fillArray( TrackProducer_hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA,hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
       fillArray( TrackProducer_hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA,hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
-      fillArray( L3MuonProducer_hltL3MuonsIterL3OIPPOnAA, hltL3MuonsIterL3OIPPOnA);
+      fillArray( L3MuonProducer_hltL3MuonsIterL3OIPPOnAA, hltL3MuonsIterL3OIPPOnAA);
       fillArray( L3MuonProducer_hltL3MuonsIterL3IOPPOnAA, hltL3MuonsIterL3IOPPOnAA);
       fillArray( L3MuonProducer_hltIterL3GlbMuonPPOnAA, hltIterL3GlbMuonPPOnAA);
       fillArray( L3MuonCandidateProducer_hltIterL3OIL3MuonCandidatesPPOnAA, hltIterL3OIL3MuonCandidatesPPOnAA);
