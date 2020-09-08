@@ -51,7 +51,7 @@ private:
   static const int Max_mu_size = 10000;
 
   template <class T>
-  void fillArray(const T& col, TClonesArray& arr){
+  void fillArray(TClonesArray& arr, const T& col ){
     int size =0;
     TLorentzVector vMuon;
     if(arr.isValid()){ 
