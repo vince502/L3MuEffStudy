@@ -50,13 +50,35 @@ private:
 
   static const int Max_mu_size = 10000;
 
-  TClonesArray* TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA= new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA= new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* TrackProducer_hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA= new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* TrackProducer_hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA= new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* TrackProducer_hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA= new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* TrackProducer_hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA= new TClonesArray("TLorentzVector", Max_mu_size);
+  template <class T>
+  void fillArray(const T& col, TClonesArray& arr){
+    int size =0;
+    TLorentzVector vMuon;
+    if(arr.isValid()){ 
+      for(const auto & track : col){
+        auto pt = track.pt();
+        auto eta = track.eta();
+        auto phi = track.phi();
+
+        vMuon.SetPtEtaPhiM(pt, eta, phi ,0.1056583745);
+        new((*arr)[size++])TLorentzVector(vMuon);
+      }
+    }
+  }
+
+
+
+};
+
+L3PAnalyzer::L3PAnalyzer(const edm::ParameterSet& iConfig) {
+
+  TClonesArray* TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA            = new TClonesArray("TLorentzVector", Max_mu_size);
+  TClonesArray* TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA       = new TClonesArray("TLorentzVector", Max_mu_size);
+  TClonesArray* TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA       = new TClonesArray("TLorentzVector", Max_mu_size);
+  TClonesArray* TrackProducer_hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA       = new TClonesArray("TLorentzVector", Max_mu_size);
+  TClonesArray* TrackProducer_hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
+  TClonesArray* TrackProducer_hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
+  TClonesArray* TrackProducer_hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
 
   TClonesArray* L3MuonProducer_hltL3MuonsIterL3OIPPOnAA= new TClonesArray("TLorentzVector", Max_mu_size);
   TClonesArray* L3MuonProducer_hltL3MuonsIterL3IOPPOnAA= new TClonesArray("TLorentzVector", Max_mu_size);
@@ -86,9 +108,6 @@ private:
   edm::EDGetTokenT<reco::RecoChargedCandidateCollection> token_hltIterL3MuonCandidatesPPOnAA_;
 
   edm::EDGetTokenT<reco::RecoChargedCandidateCollection> token_hltIter3IterL3MuonL2CandidatesPPOnAA_;
-};
-
-L3PAnalyzer::L3PAnalyzer(const edm::ParameterSet& iConfig) {
   token_hltIterL3OIMuCtfWithMaterialTracksPPOnAA_ = consumes<reco::TrackCollection>(edm::InputTag("hltIterL3OIMuCtfWithMaterialTracksPPOnAA"));
   token_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA_= consumes<reco::TrackCollection>(edm::InputTag("hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA"));
   token_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA_= consumes<reco::TrackCollection>(edm::InputTag("hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA"));
@@ -108,6 +127,20 @@ L3PAnalyzer::L3PAnalyzer(const edm::ParameterSet& iConfig) {
 }
 
 L3PAnalyzer::~L3PAnalyzer(){
+TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA->Clear()           ; 
+TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA->Clear()      ; 
+TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA->Clear()      ;
+TrackProducer_hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA->Clear()      ;
+TrackProducer_hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA->Clear();
+TrackProducer_hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA->Clear();
+TrackProducer_hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA->Clear();
+L3MuonProducer_hltL3MuonsIterL3OIPPOnAA->Clear();
+L3MuonProducer_hltL3MuonsIterL3IOPPOnAA->Clear();
+L3MuonProducer_hltIterL3GlbMuonPPOnAA->Clear()  ;
+L3MuonCandidateProducer_hltIterL3OIL3MuonCandidatesPPOnAA->Clear();
+L3MuonCandidateProducerFromMuons_hltIterL3MuonCandidatesPPOnAA->Clear();
+ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA->Clear();
+
 } 
 
 void L3PAnalyzer::beginRun(const edm::Run& r, const edm::EventSetup& iSetup) {}
@@ -191,10 +224,21 @@ void L3PAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
 
       iEvent.getByToken(token_hltIter3IterL3MuonL2CandidatesPPOnAA_, hltIter3IterL3MuonL2CandidatesPPOnAA);
 
+      fillArray( TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA           ,hltIterL3OIMuCtfWithMaterialTracksPPOnAA           );
+      fillArray( TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA      ,hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA      );
+      fillArray( TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA      ,hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA      );
+      fillArray( TrackProducer_hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA      ,hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA      );
+      fillArray( TrackProducer_hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA,hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
+      fillArray( TrackProducer_hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA,hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
+      fillArray( TrackProducer_hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA,hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
+      fillArray( L3MuonProducer_hltL3MuonsIterL3OIPPOnAA, hltL3MuonsIterL3OIPPOnA);
+      fillArray( L3MuonProducer_hltL3MuonsIterL3IOPPOnAA, hltL3MuonsIterL3IOPPOnAA);
+      fillArray( L3MuonProducer_hltIterL3GlbMuonPPOnAA, hltIterL3GlbMuonPPOnAA);
+      fillArray( L3MuonCandidateProducer_hltIterL3OIL3MuonCandidatesPPOnAA, hltIterL3OIL3MuonCandidatesPPOnAA);
+      fillArray( L3MuonCandidateProducerFromMuons_hltIterL3MuonCandidatesPPOnAA, hltIterL3MuonCandidatesPPOnAA);
+      fillArray( ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA, hltIter3IterL3MuonL2CandidatesPPOnAA);
 
-
-
-      if(hltIter3IterL3MuonL2CandidatesPPOnAA.isValid()){ 
+   /*   if(hltIter3IterL3MuonL2CandidatesPPOnAA.isValid()){ //_begin_Module_obj
       
       ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA->Clear();
       int size = 0;
@@ -467,6 +511,7 @@ void L3PAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
       }
 
     }
+    */ //_end_Module_obj
     myTree_->Fill();
   }
 
