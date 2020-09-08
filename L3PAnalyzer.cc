@@ -18,26 +18,12 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
-#include "CondFormats/HcalObjects/interface/HcalRespCorrs.h"
-#include "CondFormats/DataRecord/interface/HcalRespCorrsRcd.h"
-#include "CondFormats/DataRecord/interface/L1GtTriggerMenuRcd.h"
-#include "CondFormats/L1TObjects/interface/L1GtTriggerMenu.h"
-
 #include "DataFormats/TrackReco/interface/TrackToTrackMap.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidateFwd.h"
-//#include "DataFormats/RecoCandidate/interface/RecoChargedRefCandidateFwd.h"
-//#include "DataFormats/RecoCandidate/interface/RecoChargedRefCandidateFwd.h"
-#include "DataFormats/DetId/interface/DetId.h"
-#include "DataFormats/HcalDetId/interface/HcalSubdetector.h"
-#include "DataFormats/HcalDetId/interface/HcalDetId.h"
-#include "SimDataFormats/CaloHit/interface/PCaloHitContainer.h"
-#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
-
-#include "EventFilter/HcalRawToDigi/interface/HcalDCCHeader.h"
 
 #include "TFile.h"
 #include "TTree.h"
