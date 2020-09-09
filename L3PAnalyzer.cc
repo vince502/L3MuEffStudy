@@ -51,21 +51,23 @@ private:
   static const int Max_mu_size = 10000;
 
   template <class T>
-  void fillArray(TClonesArray& arr, const T& col ){
+  void fillArray(TClonesArray* arr, const T& col ){
     int size =0;
     TLorentzVector vMuon;
-    if(arr.isValid()){ 
-      for(const auto & track : col){
-        auto pt = track.pt();
-        auto eta = track.eta();
-        auto phi = track.phi();
-
+    if(col.isValid()){ 
+        for( auto  idx = col->begin(); idx != col->end(); idx++){
+           auto pt = idx->pt();
+           auto eta = idx->eta();
+           auto phi = idx->phi();
         vMuon.SetPtEtaPhiM(pt, eta, phi ,0.1056583745);
         new((*arr)[size++])TLorentzVector(vMuon);
       }
     }
   }
 
+  int  irun;
+  unsigned long long ievt;
+  double ipt, ieta, iphi;
   TClonesArray* TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA           ; 
   TClonesArray* TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA      ; 
   TClonesArray* TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA      ; 
@@ -83,31 +85,6 @@ private:
 
   TClonesArray* ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA;
 
-
-};
-
-L3PAnalyzer::L3PAnalyzer(const edm::ParameterSet& iConfig) {
-
-  TClonesArray* TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA            = new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA       = new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA       = new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* TrackProducer_hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA       = new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* TrackProducer_hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* TrackProducer_hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* TrackProducer_hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
-
-  TClonesArray* L3MuonProducer_hltL3MuonsIterL3OIPPOnAA= new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* L3MuonProducer_hltL3MuonsIterL3IOPPOnAA= new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* L3MuonProducer_hltIterL3GlbMuonPPOnAA  = new TClonesArray("TLorentzVector", Max_mu_size);
-
-  TClonesArray* L3MuonCandidateProducer_hltIterL3OIL3MuonCandidatesPPOnAA      = new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* L3MuonCandidateProducerFromMuons_hltIterL3MuonCandidatesPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
-
-  TClonesArray* ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
-
-  int  irun;
-  unsigned long long ievt;
-  double ipt, ieta, iphi;
   edm::EDGetTokenT<reco::TrackCollection> token_hltIterL3OIMuCtfWithMaterialTracksPPOnAA_;
   edm::EDGetTokenT<reco::TrackCollection> token_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA_;
   edm::EDGetTokenT<reco::TrackCollection> token_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA_;
@@ -124,6 +101,30 @@ L3PAnalyzer::L3PAnalyzer(const edm::ParameterSet& iConfig) {
   edm::EDGetTokenT<reco::RecoChargedCandidateCollection> token_hltIterL3MuonCandidatesPPOnAA_;
 
   edm::EDGetTokenT<reco::RecoChargedCandidateCollection> token_hltIter3IterL3MuonL2CandidatesPPOnAA_;
+
+};
+
+L3PAnalyzer::L3PAnalyzer(const edm::ParameterSet& iConfig) {
+
+  TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA            = new TClonesArray("TLorentzVector", Max_mu_size);
+  TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA       = new TClonesArray("TLorentzVector", Max_mu_size);
+  TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA       = new TClonesArray("TLorentzVector", Max_mu_size);
+  TrackProducer_hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA       = new TClonesArray("TLorentzVector", Max_mu_size);
+  TrackProducer_hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
+  TrackProducer_hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
+  TrackProducer_hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
+
+  L3MuonProducer_hltL3MuonsIterL3OIPPOnAA= new TClonesArray("TLorentzVector", Max_mu_size);
+  L3MuonProducer_hltL3MuonsIterL3IOPPOnAA= new TClonesArray("TLorentzVector", Max_mu_size);
+  L3MuonProducer_hltIterL3GlbMuonPPOnAA  = new TClonesArray("TLorentzVector", Max_mu_size);
+
+  L3MuonCandidateProducer_hltIterL3OIL3MuonCandidatesPPOnAA      = new TClonesArray("TLorentzVector", Max_mu_size);
+  L3MuonCandidateProducerFromMuons_hltIterL3MuonCandidatesPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
+
+  ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
+
+
+
   token_hltIterL3OIMuCtfWithMaterialTracksPPOnAA_ = consumes<reco::TrackCollection>(edm::InputTag("hltIterL3OIMuCtfWithMaterialTracksPPOnAA"));
   token_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA_= consumes<reco::TrackCollection>(edm::InputTag("hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA"));
   token_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA_= consumes<reco::TrackCollection>(edm::InputTag("hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA"));
@@ -198,337 +199,51 @@ void L3PAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
   ievt = iEvent.id().event();
   irun = iEvent.id().run();
   std::cout << "Run/Event : " << irun << "/" << ievt << std::endl;
- /* for (const auto& n : pdM){
-    const auto mname = n.first.first;
-    const auto pname = n.first.second;
-    const auto tname = "token_"+mname+"_";
+  edm::Handle<reco::TrackCollection> hltIterL3OIMuCtfWithMaterialTracksPPOnAA;
+  edm::Handle<reco::TrackCollection> hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA       ;
+  edm::Handle<reco::TrackCollection> hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA       ;
+  edm::Handle<reco::TrackCollection> hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA       ;
+  edm::Handle<reco::TrackCollection> hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA ;
+  edm::Handle<reco::TrackCollection> hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA ;
+  edm::Handle<reco::TrackCollection> hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA ;
+  edm::Handle<reco::TrackCollection> hltL3MuonsIterL3OIPPOnAA;
+  edm::Handle<reco::TrackCollection> hltL3MuonsIterL3IOPPOnAA;
+  edm::Handle<reco::TrackCollection> hltIterL3GlbMuonPPOnAA  ;
+  edm::Handle<reco::RecoChargedCandidateCollection> hltIterL3OIL3MuonCandidatesPPOnAA;
+  edm::Handle<reco::RecoChargedCandidateCollection> hltIterL3MuonCandidatesPPOnAA;
+  edm::Handle<reco::RecoChargedCandidateCollection> hltIter3IterL3MuonL2CandidatesPPOnAA; 
 
-    for (const auto& h : n.second){
-//      const TString var = h;*/
-//
-      edm::Handle<reco::TrackCollection> hltIterL3OIMuCtfWithMaterialTracksPPOnAA;
-      edm::Handle<reco::TrackCollection> hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA       ;
-      edm::Handle<reco::TrackCollection> hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA       ;
-      edm::Handle<reco::TrackCollection> hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA       ;
-      edm::Handle<reco::TrackCollection> hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA ;
-      edm::Handle<reco::TrackCollection> hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA ;
-      edm::Handle<reco::TrackCollection> hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA ;
-      edm::Handle<reco::TrackCollection> hltL3MuonsIterL3OIPPOnAA;
-      edm::Handle<reco::TrackCollection> hltL3MuonsIterL3IOPPOnAA;
-      edm::Handle<reco::TrackCollection> hltIterL3GlbMuonPPOnAA  ;
-      edm::Handle<reco::RecoChargedCandidateCollection> hltIterL3OIL3MuonCandidatesPPOnAA;
-      edm::Handle<reco::RecoChargedCandidateCollection> hltIterL3MuonCandidatesPPOnAA;
-      edm::Handle<reco::RecoChargedCandidateCollection> hltIter3IterL3MuonL2CandidatesPPOnAA; 
+  iEvent.getByToken(token_hltIterL3OIMuCtfWithMaterialTracksPPOnAA_, hltIterL3OIMuCtfWithMaterialTracksPPOnAA);
+  iEvent.getByToken(token_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA_      , hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA      );
+  iEvent.getByToken(token_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA_      , hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA      );
+  iEvent.getByToken(token_hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA_      , hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA      );
+  iEvent.getByToken(token_hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA_, hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
+  iEvent.getByToken(token_hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA_, hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
+  iEvent.getByToken(token_hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA_, hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
 
+  iEvent.getByToken(token_hltL3MuonsIterL3OIPPOnAA_, hltL3MuonsIterL3OIPPOnAA);
+  iEvent.getByToken(token_hltL3MuonsIterL3IOPPOnAA_, hltL3MuonsIterL3IOPPOnAA);
+  iEvent.getByToken(token_hltIterL3GlbMuonPPOnAA_, hltIterL3GlbMuonPPOnAA  );
 
+  iEvent.getByToken(token_hltIterL3OIL3MuonCandidatesPPOnAA_, hltIterL3OIL3MuonCandidatesPPOnAA);
+  iEvent.getByToken(token_hltIterL3MuonCandidatesPPOnAA_, hltIterL3MuonCandidatesPPOnAA);
 
-     // std::cout <<"Handler initialize" << std::endl;
-      iEvent.getByToken(token_hltIterL3OIMuCtfWithMaterialTracksPPOnAA_, hltIterL3OIMuCtfWithMaterialTracksPPOnAA);
-      iEvent.getByToken(token_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA_      , hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA      );
-      iEvent.getByToken(token_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA_      , hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA      );
-      iEvent.getByToken(token_hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA_      , hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA      );
-      iEvent.getByToken(token_hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA_, hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
-      iEvent.getByToken(token_hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA_, hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
-      iEvent.getByToken(token_hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA_, hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
+  iEvent.getByToken(token_hltIter3IterL3MuonL2CandidatesPPOnAA_, hltIter3IterL3MuonL2CandidatesPPOnAA);
 
-      iEvent.getByToken(token_hltL3MuonsIterL3OIPPOnAA_, hltL3MuonsIterL3OIPPOnAA);
-      iEvent.getByToken(token_hltL3MuonsIterL3IOPPOnAA_, hltL3MuonsIterL3IOPPOnAA);
-      iEvent.getByToken(token_hltIterL3GlbMuonPPOnAA_, hltIterL3GlbMuonPPOnAA  );
-
-      iEvent.getByToken(token_hltIterL3OIL3MuonCandidatesPPOnAA_, hltIterL3OIL3MuonCandidatesPPOnAA);
-      iEvent.getByToken(token_hltIterL3MuonCandidatesPPOnAA_, hltIterL3MuonCandidatesPPOnAA);
-
-      iEvent.getByToken(token_hltIter3IterL3MuonL2CandidatesPPOnAA_, hltIter3IterL3MuonL2CandidatesPPOnAA);
-
-      fillArray( TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA           ,hltIterL3OIMuCtfWithMaterialTracksPPOnAA           );
-      fillArray( TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA      ,hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA      );
-      fillArray( TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA      ,hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA      );
-      fillArray( TrackProducer_hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA      ,hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA      );
-      fillArray( TrackProducer_hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA,hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
-      fillArray( TrackProducer_hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA,hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
-      fillArray( TrackProducer_hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA,hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
-      fillArray( L3MuonProducer_hltL3MuonsIterL3OIPPOnAA, hltL3MuonsIterL3OIPPOnAA);
-      fillArray( L3MuonProducer_hltL3MuonsIterL3IOPPOnAA, hltL3MuonsIterL3IOPPOnAA);
-      fillArray( L3MuonProducer_hltIterL3GlbMuonPPOnAA, hltIterL3GlbMuonPPOnAA);
-      fillArray( L3MuonCandidateProducer_hltIterL3OIL3MuonCandidatesPPOnAA, hltIterL3OIL3MuonCandidatesPPOnAA);
-      fillArray( L3MuonCandidateProducerFromMuons_hltIterL3MuonCandidatesPPOnAA, hltIterL3MuonCandidatesPPOnAA);
-      fillArray( ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA, hltIter3IterL3MuonL2CandidatesPPOnAA);
-
-   /*   if(hltIter3IterL3MuonL2CandidatesPPOnAA.isValid()){ //_begin_Module_obj
-      
-      ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA->Clear();
-      int size = 0;
-      TLorentzVector vMuon;
-      //muon mass 0.1056583745 GeV
-      for(std::vector<reco::RecoChargedCandidate>::const_iterator idx = hltIter3IterL3MuonL2CandidatesPPOnAA->begin(); idx != hltIter3IterL3MuonL2CandidatesPPOnAA->end(); ++idx){
-
-//        if((size%100)==0) std::cout << "hltIter3IterL3MuonL2CandidatesPPOnAA Track num: " << size << std::endl;
-        auto pt  = idx->p4().pt();
-        auto eta = idx->p4().eta();
-        auto phi = idx->p4().phi();
-        vMuon.SetPtEtaPhiM(pt,eta,phi,0.1056583745);
-        new((*ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA)[size])TLorentzVector(vMuon);
-
-        size++;
-      }
-
-    }
-  
-  
-      if(hltIterL3OIL3MuonCandidatesPPOnAA.isValid()){ 
-      
-      L3MuonCandidateProducer_hltIterL3OIL3MuonCandidatesPPOnAA->Clear();
-      int size = 0;
-      TLorentzVector vMuon;
-      //muon mass 0.1056583745 GeV
-      
-      for(std::vector<reco::RecoChargedCandidate>::const_iterator idx = hltIterL3OIL3MuonCandidatesPPOnAA->begin(); idx != hltIterL3OIL3MuonCandidatesPPOnAA->end(); ++idx){
-//        if((size%100)==0) std::cout << "hltIterL3OIL3MuonCandidatesPPOnAA Track num: " << size << std::endl;
-        auto pt  = idx->p4().pt();
-        auto eta = idx->p4().eta();
-        auto phi = idx->p4().phi();
-        vMuon.SetPtEtaPhiM(pt,eta,phi,0.1056583745);
-        new((*L3MuonCandidateProducer_hltIterL3OIL3MuonCandidatesPPOnAA)[size])TLorentzVector(vMuon);
-
-        size++;
-      }
-
-    }
-  
-      if(hltIterL3MuonCandidatesPPOnAA.isValid()){ 
-      
-      L3MuonCandidateProducerFromMuons_hltIterL3MuonCandidatesPPOnAA->Clear();
-      int size = 0;
-      TLorentzVector vMuon;
-      //muon mass 0.1056583745 GeV
-      
-      for(std::vector<reco::RecoChargedCandidate>::const_iterator idx = hltIterL3MuonCandidatesPPOnAA->begin(); idx != hltIterL3MuonCandidatesPPOnAA->end(); ++idx){
-//        if((size%100)==0) std::cout << "hltIterL3MuonCandidatesPPOnAA Track num: " << size << std::endl;
-        auto pt  = idx->p4().pt();
-        auto eta = idx->p4().eta();
-        auto phi = idx->p4().phi();
-        vMuon.SetPtEtaPhiM(pt,eta,phi,0.1056583745);
-        new((*L3MuonCandidateProducerFromMuons_hltIterL3MuonCandidatesPPOnAA)[size])TLorentzVector(vMuon);
-
-        size++;
-      }
-
-    }
-  
-  
-      if(hltIterL3OIMuCtfWithMaterialTracksPPOnAA.isValid()){ 
-    
-      TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA->Clear();
-      int size = 0;
-      TLorentzVector vMuon;
-      //muon mass 0.1056583745 GeV
-      
-      for(unsigned int idx=0; idx<hltIterL3OIMuCtfWithMaterialTracksPPOnAA->size();idx++){
-//        if((size%100)==0) std::cout << "hltIterL3OIMuCtfWithMaterialTracksPPOnAA Track num: " << size << std::endl;
-        const reco::TrackRef track(hltIterL3OIMuCtfWithMaterialTracksPPOnAA, idx);
-        auto pt = track->pt();
-        auto eta =track->eta();
-        auto phi = track->phi();
-        vMuon.SetPtEtaPhiM(pt,eta,phi,0.1056583745);
-        new((*TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA)[size])TLorentzVector(vMuon);
-
-        size++;
-      }
-
-    }
-  
-
-
-      if(hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA.isValid()){ 
-    
-      TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA->Clear();
-      int size = 0;
-      TLorentzVector vMuon;
-      //muon mass 0.1056583745 GeV
-      
-      for(unsigned int idx=0; idx<hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA->size();idx++){
-//        if((size%100)==0) std::cout << "hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA Track num: " << size << std::endl;
-        const reco::TrackRef track(hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA, idx);
-        auto pt = track->pt();
-        auto eta =track->eta();
-        auto phi = track->phi();
-        vMuon.SetPtEtaPhiM(pt,eta,phi,0.1056583745);
-        new((*TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA)[size])TLorentzVector(vMuon);
-
-        size++;
-      }
-
-    }
-      if(hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA.isValid()){ 
-    
-      TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA->Clear();
-      int size = 0;
-      TLorentzVector vMuon;
-      //muon mass 0.1056583745 GeV
-      
-      for(unsigned int idx=0; idx<hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA->size();idx++){
-//        if((size%100)==0) std::cout << "hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA Track num: " << size << std::endl;
-        const reco::TrackRef track(hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA, idx);
-        auto pt = track->pt();
-        auto eta =track->eta();
-        auto phi = track->phi();
-        vMuon.SetPtEtaPhiM(pt,eta,phi,0.1056583745);
-        new((*TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA)[size])TLorentzVector(vMuon);
-
-        size++;
-      }
-
-    }
-
-      if(hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA.isValid()){ 
-    
-      TrackProducer_hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA->Clear();
-      int size = 0;
-      TLorentzVector vMuon;
-      //muon mass 0.1056583745 GeV
-      
-      for(unsigned int idx=0; idx<hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA->size();idx++){
-//        if((size%100)==0) std::cout << "hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA Track num: " << size << std::endl;
-        const reco::TrackRef track(hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA, idx);
-        auto pt = track->pt();
-        auto eta =track->eta();
-        auto phi = track->phi();
-        vMuon.SetPtEtaPhiM(pt,eta,phi,0.1056583745);
-        new((*TrackProducer_hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA)[size])TLorentzVector(vMuon);
-
-        size++;
-      }
-
-    }
-
-      if(hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA.isValid()){ 
-    
-      TrackProducer_hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA->Clear();
-      int size = 0;
-      TLorentzVector vMuon;
-      //muon mass 0.1056583745 GeV
-      
-      for(unsigned int idx=0; idx<hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA->size();idx++){
-//        if((size%100)==0) std::cout << "hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA Track num: " << size << std::endl;
-        const reco::TrackRef track(hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA, idx);
-        auto pt = track->pt();
-        auto eta =track->eta();
-        auto phi = track->phi();
-        vMuon.SetPtEtaPhiM(pt,eta,phi,0.1056583745);
-        new((*TrackProducer_hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA)[size])TLorentzVector(vMuon);
-
-        size++;
-      }
-
-    }
-
-      if(hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA.isValid()){ 
-    
-      TrackProducer_hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA->Clear();
-      int size = 0;
-      TLorentzVector vMuon;
-      //muon mass 0.1056583745 GeV
-      
-      for(unsigned int idx=0; idx<hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA->size();idx++){
-//        if((size%100)==0) std::cout <<"hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA Track num: " << size << std::endl;
-        const reco::TrackRef track(hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA, idx);
-        auto pt = track->pt();
-        auto eta =track->eta();
-        auto phi = track->phi();
-        vMuon.SetPtEtaPhiM(pt,eta,phi,0.1056583745);
-        new((*TrackProducer_hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA)[size])TLorentzVector(vMuon);
-
-        size++;
-      }
-
-    }
-
-      if(hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA.isValid()){ 
-    
-      TrackProducer_hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA->Clear();
-      int size = 0;
-      TLorentzVector vMuon;
-      //muon mass 0.1056583745 GeV
-      
-      for(unsigned int idx=0; idx<hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA->size();idx++){
-//        if((size%100)==0) std::cout << "hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA Track num: " << size << std::endl;
-        const reco::TrackRef track(hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA, idx);
-        auto pt = track->pt();
-        auto eta =track->eta();
-        auto phi = track->phi();
-        vMuon.SetPtEtaPhiM(pt,eta,phi,0.1056583745);
-        new((*TrackProducer_hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA)[size])TLorentzVector(vMuon);
-
-        size++;
-      }
-
-    }
-
-
-      if(hltL3MuonsIterL3OIPPOnAA.isValid()){ 
-    
-      L3MuonProducer_hltL3MuonsIterL3OIPPOnAA->Clear();
-      int size = 0;
-      TLorentzVector vMuon;
-      //muon mass 0.1056583745 GeV
-      
-      for(unsigned int idx=0; idx<hltL3MuonsIterL3OIPPOnAA->size();idx++){
-//        if((size%100)==0) std::cout << "hltL3MuonsIterL3OIPPOnAA Track num: " << size << std::endl;
-        const reco::TrackRef track(hltL3MuonsIterL3OIPPOnAA, idx);
-        auto pt = track->pt();
-        auto eta =track->eta();
-        auto phi = track->phi();
-        vMuon.SetPtEtaPhiM(pt,eta,phi,0.1056583745);
-        new((*L3MuonProducer_hltL3MuonsIterL3OIPPOnAA)[size])TLorentzVector(vMuon);
-
-        size++;
-      }
-
-    }
-
-      if(hltL3MuonsIterL3IOPPOnAA.isValid()){ 
-    
-      L3MuonProducer_hltL3MuonsIterL3IOPPOnAA->Clear();
-      int size = 0;
-      TLorentzVector vMuon;
-      //muon mass 0.1056583745 GeV
-      
-      for(unsigned int idx=0; idx<hltL3MuonsIterL3IOPPOnAA->size();idx++){
-//        if((size%100)==0) std::cout << "hltL3MuonsIterL3IOPPOnAA Track num: " << size << std::endl;
-        const reco::TrackRef track(hltL3MuonsIterL3IOPPOnAA, idx);
-        auto pt = track->pt();
-        auto eta =track->eta();
-        auto phi = track->phi();
-        vMuon.SetPtEtaPhiM(pt,eta,phi,0.1056583745);
-        new((*L3MuonProducer_hltL3MuonsIterL3IOPPOnAA)[size])TLorentzVector(vMuon);
-
-        size++;
-      }
-
-    }
-
-      if(hltIterL3GlbMuonPPOnAA.isValid()){ 
-    
-      L3MuonProducer_hltIterL3GlbMuonPPOnAA->Clear();
-      int size = 0;
-      TLorentzVector vMuon;
-      //muon mass 0.1056583745 GeV
-      
-      for(unsigned int idx=0; idx<hltIterL3GlbMuonPPOnAA->size();idx++){
-//        if((size%100)==0) std::cout << "hltIterL3GlbMuonPPOnAATrack num: " << size << std::endl;
-        const reco::TrackRef track(hltIterL3GlbMuonPPOnAA, idx);
-        auto pt = track->pt();
-        auto eta =track->eta();
-        auto phi = track->phi();
-        vMuon.SetPtEtaPhiM(pt,eta,phi,0.1056583745);
-        new((*L3MuonProducer_hltIterL3GlbMuonPPOnAA)[size])TLorentzVector(vMuon);
-
-        size++;
-      }
-
-    }
-    */ //_end_Module_obj
-    myTree_->Fill();
+  fillArray<edm::Handle<reco::TrackCollection>>( TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA           ,hltIterL3OIMuCtfWithMaterialTracksPPOnAA           );
+  fillArray<edm::Handle<reco::TrackCollection>>( TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA      ,hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA      );
+  fillArray<edm::Handle<reco::TrackCollection>>(TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA      ,hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA      );
+  fillArray<edm::Handle<reco::TrackCollection>>(TrackProducer_hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA      ,hltIter3IterL3MuonCtfWithMaterialTracksPPOnAA      );
+  fillArray<edm::Handle<reco::TrackCollection>>(TrackProducer_hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA,hltIter0IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
+  fillArray<edm::Handle<reco::TrackCollection>>(TrackProducer_hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA,hltIter2IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
+  fillArray<edm::Handle<reco::TrackCollection>>(TrackProducer_hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA,hltIter3IterL3FromL1MuonCtfWithMaterialTracksPPOnAA);
+  fillArray<edm::Handle<reco::TrackCollection>>(L3MuonProducer_hltL3MuonsIterL3OIPPOnAA, hltL3MuonsIterL3OIPPOnAA);
+  fillArray<edm::Handle<reco::TrackCollection>>(L3MuonProducer_hltL3MuonsIterL3IOPPOnAA, hltL3MuonsIterL3IOPPOnAA);
+  fillArray<edm::Handle<reco::TrackCollection>>(L3MuonProducer_hltIterL3GlbMuonPPOnAA, hltIterL3GlbMuonPPOnAA);
+  fillArray<edm::Handle<reco::RecoChargedCandidateCollection>>(L3MuonCandidateProducer_hltIterL3OIL3MuonCandidatesPPOnAA, hltIterL3OIL3MuonCandidatesPPOnAA);
+  fillArray<edm::Handle<reco::RecoChargedCandidateCollection>>(L3MuonCandidateProducerFromMuons_hltIterL3MuonCandidatesPPOnAA, hltIterL3MuonCandidatesPPOnAA);
+  fillArray<edm::Handle<reco::RecoChargedCandidateCollection>>( ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA, hltIter3IterL3MuonL2CandidatesPPOnAA);
+  myTree_->Fill();
   }
 
 
