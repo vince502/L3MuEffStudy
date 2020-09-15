@@ -31,10 +31,8 @@ void L3CentTree(){
     if ((iEntry%100000)==0){std::cout << "Processing event " << iEntry << " / " << nEntries << std::endl;}
     recoInfo.setEntry(iEntry, false, true);
     std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();
-//    if(evtInfo.second <151999999 || evtInfo.second > 153000000){continue;}
 
     count++;
-//    std::cout << "Event: " << evtInfo.second << std::endl;
 
         while(r1.Next()){
 	
@@ -49,7 +47,7 @@ void L3CentTree(){
         }
 
       r1.Restart();
-      centI=300;
+      centI=0;
 
     }
     std::cout <<"Number of event: "<< count << std::endl;
