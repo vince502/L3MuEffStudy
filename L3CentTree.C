@@ -37,7 +37,6 @@ void L3CentTree(){
 //    std::cout << "Event: " << evtInfo.second << std::endl;
 
         while(r1.Next()){
-	  centI =300;
 	
 	  if( evtInfo.first == *Run && evtInfo.second == *Event ){
 //	    std::cout<< "Found hibin"<<", in Event(L3/reco): " << *Event<<" / " << evtInfo.second  << std::endl;
@@ -50,7 +49,7 @@ void L3CentTree(){
         }
 
       r1.Restart();
-      centI=0;
+      centI=300;
 
     }
     std::cout <<"Number of event: "<< count << std::endl;
