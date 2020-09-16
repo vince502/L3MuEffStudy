@@ -11,7 +11,7 @@
 
 void L3CentTree(){
 
-  TFile* l3t = new TFile("Large_Files/1.1v_MBL3.root", "read");
+  TFile* l3t = new TFile("1v_MBL3.root", "read");
   TFile* resl3 = new TFile("L3_result.root", "recreate");
 
   std::string reco = "/Users/soohwanlee/RunPreparation/store/Forest_HIMinimumBias2_run327237_merged.root";
