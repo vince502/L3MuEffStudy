@@ -24,8 +24,9 @@ void Drawhist(){
   TTree* t1 = TTreeReader("L3Track").GetTree();
 //  TTree* t2 = t1->CloneTree(0);
   TObjArray* blist = t1->GetListOfBranches();
-  TCanvas* c1 = new TCanvas("c1", "EDProducer Pt Collection", 1000, 800);
-  auto legend = new TLegend(160,10, 180,1000);
+  TCanvas* c1 = new TCanvas("c1", "EDProducer Pt Collection",1);
+  auto legend = new TLegend(0.6,0.5,1.0,1.0);
+  legend->SetBorderSize(0);
   long long nEntries = t1->GetEntries();
   Int_t Event;
   Int_t Run;
@@ -39,14 +40,19 @@ void Drawhist(){
     TBranch* br = (TBranch*) blist->At(brent+2);
      std::string pname = br->GetName(); 
     t1->SetBranchAddress(pname.c_str(), &TC);
-    TH1D* hist = new TH1D("hist", pname.c_str(), 20,0,80); 
-    legend->AddEntry(hist, pname.c_str(), "l");
+    TH1D* hist = new TH1D("hist", pname.c_str(), 100,0,200); 
+    hist->SetStats(0000);
+    legend->AddEntry(hist, pname.c_str(), "pl");
     std::cout << "Reading Branch: " << pname << " with entries " << nEntries << std::endl; 
-
+    int buf = 0;
     for(long long j = 0 ; j <nEntries; j++){
       t1->GetEntry(j);
       int cEntries = TC->GetSize();
-      if(cEntries>0){for(int k =0; k < cEntries; k++){
+
+      if(cEntries>0){
+	buf+=cEntries;
+ 
+	for(int k =0; k < cEntries; k++){
 	/*if(k==0){std::cout << "Start filling" << std::endl;
         std::cout << pname << ": Entry Size -> " << cEntries << "at Event"   << std::endl;
 	}*/
@@ -57,15 +63,27 @@ void Drawhist(){
         hist->Fill(pt);
       }}
     }
+    
+    std::cout << "Module entries: "  << buf << std::endl;
+    hist->GetYaxis()->SetRange(0,100000);
+    hist->GetXaxis()->SetTitle("Pt");
+    hist->GetYaxis()->SetTitle("Counts");
+//    hist->GetYaxis()->SetRangeUser(0,1e+5);
+
     hist->SetLineColor(brent+30);
-    hist->SetMarkerStyle(brent+1);
-    hist->Draw("CP SAME");
+    hist->SetMarkerColor(brent+1);
+    TAttMarker tm;
+    tm.SetMarkerStyle(brent+50);
+    hist->SetMarkerStyle(tm.GetMarkerStyle());
+    hist->Draw("C P SAME");
     hist->Clear();
     legend->Draw();
+    c1->Update();
     }
 
   c1->SetLogy();
+  c1->Modified();
   c1->Print("Result.pdf"); 
-  c1->Close();
-  f->Close(); 
+//  c1->Close();
+//  f->Close(); 
 }
