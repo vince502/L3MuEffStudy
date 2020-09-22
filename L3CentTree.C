@@ -16,7 +16,7 @@ void L3CentTree(){
   std::string reco = "/Users/soohwanlee/RunPreparation/store/Forest_HIMinimumBias2_run327237_merged.root";
 
   RecoReader recoInfo(reco, false);
-  TFile* l3t = new TFile("MBL3.root", "update");
+  TFile* l3t = new TFile("1v_MBL3.root", "update");
   TTree* t1 =(TTree*) l3t->Get("l3pAnalyzer/L3Track");
 
   TBranch *hibin = t1->Branch("hiBin", &centI, "hiBin/I");
