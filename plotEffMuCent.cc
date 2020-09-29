@@ -58,19 +58,25 @@ void plotEffMuCent(){
           int cEntries = TC->GetSize();
 
           if(cEntries>0){
+
+    	  for( auto recM : particles ){
+	        double rpt = recM.first.Pt();
+	        double reta = recM.first.Eta();
+	        double rphi = recM.first.Phi();
+		int fillcount=0;
+		bool isMatched;
 	    for(int k = 0 ; k < cEntries; k++){
       	      TLorentzVector* onv = (TLorentzVector*) TC->At(k);
     	      double opt = onv->Pt();
               double oeta = onv->Eta();
     	      double ophi = onv->Phi();
-    	      for( auto recM : particles ){
-	        double rpt = recM.first.Pt();
-	        double reta = recM.first.Eta();
-	        double rphi = recM.first.Phi();
+
     	        double dR = std::sqrt((oeta-reta)*(oeta-reta)+(ophi-rphi)*(ophi-rphi));
-    	        bool isMatched = (dR < 0.1) ? true: false;
-    	        effVec[i].Fill(isMatched, centI);
+    	        isMatched = (dR < 0.1) ? true: false;
+		if(isMatched){break;}
+
 	      }
+	      effVec[i].Fill(isMatched, centI);
             }
 	  }
         } 
@@ -82,9 +88,12 @@ void plotEffMuCent(){
   int tt= 0;
   std::vector<TGraphAsymmErrors> graphM;
   for(auto& Eff : effVec){
-    TCanvas c("c", "c", 1000, 1000); c.cd();
-    Eff.Draw(); gPad->Update();
     auto name = effMapTitle[tt];
+    TCanvas c("c", "c", 1000, 1000); c.cd();
+    Eff.SetName(name.c_str());
+    Eff.SetTitle(name.c_str());
+    Eff.Draw(); gPad->Update();
+
     std::cout << effMapTitle[tt] << std::endl;
     makeDirFile(file,name);
     TDirectory* subdir_ = file->GetDirectory(name.c_str());
