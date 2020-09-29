@@ -35,7 +35,7 @@ void plotEffMuCent_v2(){
   
   RecoReader recoInfo(reco, false);
   const auto nEntries = recoInfo.getEntries();
-  TFile* l3t = new TFile("L3_crabbed_1131.root","open");
+  TFile* l3t = new TFile("Large_Files/L3_crabbed_1131.root","open");
   TTree* t1 = (TTree*) l3t->Get("l3pAnalyzer/L3Track");
   TTreeReader r1 = TTreeReader("l3pAnalyzer/L3Track",l3t);
   TObjArray* blist = t1->GetListOfBranches();
