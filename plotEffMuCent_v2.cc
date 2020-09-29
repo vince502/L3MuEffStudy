@@ -6,9 +6,10 @@
 #include <memory>
 #include <TTree.h>
 #include <string>
+#include <TStopwatch.h>
 #include "Cent_plotTurnOn.h"
 
-void Printprogress(float progress){
+void Printprogress(float progress, Double_t time){
   if( progress <1.0){
     int barWidth = 70;
 
@@ -19,7 +20,7 @@ void Printprogress(float progress){
       else if(i==pos) std::cout << ">";
       else std::cout << " ";
     }
-    std::cout << "]" << (progress*100.0) << " %\r";
+    std::cout << "]" << (progress*100.0) << " %, eta :"<< time*(1-progress)/3600<<" hrs\r";
     std::cout.flush();
   }
   else std::cout << std::endl;
@@ -46,6 +47,7 @@ void plotEffMuCent_v2(){
   t1->SetBranchAddress("Run", &Run);
 //  t1->SetBranchAddress("hiBin", &centI);
   TClonesArray* TC = new TClonesArray("TLorentzVector", Max_mu_size);
+  TStopwatch* clock1 = new TStopwatch();
 
   std::vector<TEfficiency> effVec;
   std::vector<std::string> effMapTitle;
@@ -62,9 +64,11 @@ void plotEffMuCent_v2(){
   
   int totalEnt = onentries;//onentries*(857000-848000);
   int progf = 0;
+  Double_t cyt=0;
 
   for(Long64_t jEntry =0 ; jEntry<onentries; jEntry++){
-    if( (progf%100)==0) {float _progress = float(progf)/float(totalEnt); Printprogress(_progress);}
+    clock1->Start();
+    if( (progf%1)==0) {float _progress = float(progf)/float(totalEnt); Printprogress(_progress, cyt);}
     t1->GetEntry(jEntry);
 
     for(int i=0; i< 13; i++){
@@ -72,7 +76,7 @@ void plotEffMuCent_v2(){
       std::string pname = br->GetName();
       t1->SetBranchStatus(pname.c_str(), 1);
 
-      for(int iEntry= 848000; iEntry<857000; ++iEntry){
+      for(int iEntry= 0; iEntry< nEntries ; ++iEntry){
         recoInfo.setEntry(iEntry, false, true);
         std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();
       
@@ -109,6 +113,9 @@ void plotEffMuCent_v2(){
       }
       t1->SetBranchStatus(pname.c_str(), 0);
     }
+    clock1->Stop();
+    cyt= clock1->RealTime()*(double(onentries));
+    clock1->Reset();
     progf += 1;
   }
   std::cout << "Done Filling" << std::endl;
