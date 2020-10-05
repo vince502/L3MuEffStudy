@@ -121,16 +121,16 @@ void plotEffMuCent_v3(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
 	  }
 	}
       }
-      TH1D* h3 = (TH1D*) ho->Clone("h3");
-      TH1D* h4 = (TH1D*) hof->Clone("h3");
-      h3->Divide(hr);
-      h4->Divide(hr);
-      h3->SetName(Form("%s_online",pname.c_str()));
-      h4->SetName(Form("%s_online fake",pname.c_str()));
-      std::pair<TH1D, TH1D> hp = std::make_pair(*h3, *h4);
-      ratioM.insert(std::pair<std::string, std::pair<TH1D, TH1D> >(pname, hp));
-      hr->Clear(); ho->Clear(); hof->Clear(); h3->Delete(); h4->Delete();
     }
+    TH1D* h3 = (TH1D*) ho->Clone("h3");
+    TH1D* h4 = (TH1D*) hof->Clone("h3");
+    h3->Divide(hr);
+    h4->Divide(hr);
+    h3->SetName(Form("%s_online",pname.c_str()));
+    h4->SetName(Form("%s_online fake",pname.c_str()));
+    std::pair<TH1D, TH1D> hp = std::make_pair(*h3, *h4);
+    ratioM.insert(std::pair<std::string, std::pair<TH1D, TH1D> >(pname, hp));
+    hr->Clear(); ho->Clear(); hof->Clear(); h3->Delete(); h4->Delete();
   }
   std::cout<< std::endl;
   std::cout << "DONE filling ratio plots" <<std::endl;
