@@ -31,28 +31,11 @@ void makeDirFile(TFile *f1, const std::string& dir)
   TDirectory* subdir = f1->mkdir(dir.c_str());
 };
 
-void plotEffMuCent_v3(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
+void plotEffMuCent_v4(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
   std::string reco = "/Users/soohwanlee/RunPreparation/store/Forest_HIMinimumBias2_run327237_merged.root";
 
   //initiate evt number list
-  std::ifstream evml;
-  evml.open(("realEvtpair_"+filen+".txt").c_str());
-  std::vector<std::pair<int, int> >evl_;
-  std::string str;
-  int icount=0;
-  while( getline(evml, str)){
-    if((icount%10000)==0){std::cout << "Getting line: " << icount << "\r"; std::cout.flush();}
-    icount++;
-//    if(icount >100000){break;}
-    int oev, rev;
-    std::istringstream strb(str);
-    strb >> oev >> rev;
-    std::pair<int, int>pbuf = std::make_pair(oev, rev);
-    evl_.push_back(pbuf);
-  }
-  evml.close();
-  std::cout<< std::endl;
-  std::cout<< "DONE Evt Init" <<std::endl;
+
 
   //initiate ratio map
   std::map<std::string, std::pair<TH1D, TH1D> > ratioM;
@@ -70,7 +53,24 @@ void plotEffMuCent_v3(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
   TH1::AddDirectory(kFALSE);
   auto fillRatio = [=](int idx)
   {
-    std::vector<std::pair<int, int> >evl(evl_);
+  std::ifstream evml;
+  evml.open(("./matchTXT/realEvtpair_"+filen+".txt").c_str());
+  std::vector<std::pair<int, int> >evl;
+  std::string str;
+  int icount=0;
+  while( getline(evml, str)){
+    if((icount%10000)==0){std::cout << "Getting line: " << icount << "\r"; std::cout.flush();}
+    icount++;
+//    if(icount >100000){break;}
+    int oev, rev;
+    std::istringstream strb(str);
+    strb >> oev >> rev;
+    std::pair<int, int>pbuf = std::make_pair(oev, rev);
+    evl.push_back(pbuf);
+  }
+  evml.close();
+  std::cout<< std::endl;
+  std::cout<< "DONE Evt Init" <<std::endl;
   RecoReader recoInfo(reco, false);
   const auto nEntries = recoInfo.getEntries();
   TFile* l3t = new TFile(("Large_Files/"+filen+".root").c_str(),"open");
@@ -91,65 +91,65 @@ void plotEffMuCent_v3(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
   TH1D* hof = new TH1D("hof","hof", 20,0, 100);
   std::cout << "total Events: " << evl.size() << std::endl;
   recoInfo.initBranches("muon");
-    TBranch* br = (TBranch*) blist->At(i+2);
-    std::string pname = br->GetName();
-    t1->SetBranchAddress(pname.c_str(), &TC);
-    for(std::vector<std::pair<int, int> >::const_iterator it = evl.begin(); it != evl.end(); it++){
-      int oev = it->first; int rev = it->second;
-      count++;
-      t1->GetEntry(oev);
-      recoInfo.setEntry(rev, false, true);
-      const auto particles = recoInfo.getParticles("muon");
-      int cEntries = TC->GetEntries();
-      const auto centI = recoInfo.getCentrality();
-      if((count%1000)==0){std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
-      std::cout <<"Idx: "<<oev<< " / "<<rev << std::endl;} 
-      if(cEntries>0){
-//	std::cout << "matching online muon: " <<pname.c_str() << "cEntries: "<< cEntries << std::endl;
-	for( auto recM : particles ){
-	  double rpt = recM.first.Pt();
-	  double reta = recM.first.Eta();
-	  double rphi = recM.first.Phi();
-	  hr->Fill(centI);
-	  bool isMatched;
-	  for(int k=0; k<cEntries; k++){
-	    TLorentzVector* onv = (TLorentzVector*) TC->At(k);
-	    double opt = onv->Pt();
-	    double oeta = onv->Eta();
-	    double ophi = onv->Phi();
-	    double dR = std::sqrt((oeta-reta)*(oeta-reta)+(ophi-rphi)*(ophi-rphi));
-	    isMatched = (dR < 0.1) ? true : false;
-	    if(isMatched){
-	      ho->Fill(centI);
-	    }
-	    else{
-	      hof->Fill(centI);
-	    }
-	  }
-	}
+  TBranch* br = (TBranch*) blist->At(idx+2);
+  std::string pname = br->GetName();
+  t1->SetBranchAddress(pname.c_str(), &TC);
+  for(std::vector<std::pair<int, int> >::const_iterator it = evl.begin(); it != evl.end(); it++){
+    int oev = it->first; int rev = it->second;
+    count++;
+    t1->GetEntry(oev);
+    recoInfo.setEntry(rev, false, true);
+    const auto particles = recoInfo.getParticles("muon");
+    int cEntries = TC->GetEntries();
+    const auto centI = recoInfo.getCentrality();
+    if((count%1000)==0){std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
+    std::cout <<"Idx: "<<oev<< " / "<<rev << std::endl;} 
+    if(cEntries>0){
+//    std::cout << "matching online muon: " <<pname.c_str() << "cEntries: "<< cEntries << std::endl;
+      for( auto recM : particles ){
+        double rpt = recM.first.Pt();
+        double reta = recM.first.Eta();
+        double rphi = recM.first.Phi();
+        hr->Fill(centI);
+        bool isMatched;
+        for(int k=0; k<cEntries; k++){
+          TLorentzVector* onv = (TLorentzVector*) TC->At(k);
+          double opt = onv->Pt();
+          double oeta = onv->Eta();
+          double ophi = onv->Phi();
+          double dR = std::sqrt((oeta-reta)*(oeta-reta)+(ophi-rphi)*(ophi-rphi));
+          isMatched = (dR < 0.1) ? true : false;
+          if(isMatched){
+            ho->Fill(centI);
+          }
+          else{
+            hof->Fill(centI);
+          }
+        }
       }
-      TH1D* h3 = (TH1D*) ho->Clone("h3");
-      TH1D* h4 = (TH1D*) hof->Clone("h3");
-      h3->Divide(hr);
-      h4->Divide(hr);
-      h3->SetName(Form("%s_online",pname.c_str()));
-      h4->SetName(Form("%s_online fake",pname.c_str()));
-      std::pair<TH1D, TH1D> hp = std::make_pair(*h3, *h4);
-      auto ratioP = std::pair<std::string, std::pair<TH1D, TH1D> >(pname, hp);
-      hr->Clear(); ho->Clear(); hof->Clear(); h3->Delete(); h4->Delete();
     }
+  }
+  TH1D* h3 = (TH1D*) ho->Clone("h3");
+  TH1D* h4 = (TH1D*) hof->Clone("h3");
+  h3->Divide(hr);
+  h4->Divide(hr);
+  h3->SetName(Form("%s_online",pname.c_str()));
+  h4->SetName(Form("%s_online fake",pname.c_str()));
+  std::pair<TH1D, TH1D> hp = std::make_pair(*h3, *h4);
+  auto ratioP = std::pair<std::string, std::pair<TH1D, TH1D> >(pname, hp);
+  hr->Clear(); ho->Clear(); hof->Clear(); h3->Delete(); h4->Delete();
   
   std::cout<< std::endl;
   std::cout << "DONE filling ratio plot: " << pname.c_str() <<std::endl;
   return ratioP;
-  }
+  };
   
   const auto& res = mpe.Map(fillRatio, ROOT::TSeqI(nCores));
 
   for (const auto& r: res){
-    ratioM.insert(r)
+    ratioM.insert(r);
   }
-
+  std::cout << "DONE allocating ratio maps" << std::endl;
   //modify plots & draw
   TFile* out = new TFile(("outputratioL3_"+filen+".root").c_str(),"recreate");
   for(std::map<std::string, std::pair<TH1D, TH1D> >::const_iterator itt = ratioM.begin(); itt != ratioM.end(); itt++){
