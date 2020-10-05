@@ -9,11 +9,12 @@
 #include <TStopwatch.h>
 #include "Cent_plotTurnOn.h"
 
-void matchEvt_map(){ 
+void matchEvt_map(){
+  std::string of = "1v_MBL3";
   std::string reco = "/Users/soohwanlee/RunPreparation/store/Forest_HIMinimumBias2_run327237_merged.root";
   RecoReader recoInfo(reco, false);
   const auto nEntries = recoInfo.getEntries();
-  TFile* l3t = new TFile("Large_Files/L3_crabbed_1178.root","open");
+  TFile* l3t = new TFile(("Large_Files/"+of+".root").c_str(),"open");
   TTree* t1 = (TTree*) l3t->Get("l3pAnalyzer/L3Track");
   t1->SetBranchStatus("*", 0);
   t1->SetBranchStatus("Event", 1);
@@ -64,7 +65,7 @@ void matchEvt_map(){
     std::cout<< "Done Matching" <<std::endl;
     
     std::ofstream out;
-    out.open("realEvtpair.txt");
+    out.open(Form("realEvtpair_%s.txt",of.c_str()));
     int count2=0;
     for(std::map<int, int>::iterator itt = idxlist.begin(); itt != idxlist.end(); itt++){
       count2++;
