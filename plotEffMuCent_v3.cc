@@ -31,8 +31,8 @@ void makeDirFile(TFile *f1, const std::string& dir)
   TDirectory* subdir = f1->mkdir(dir.c_str());
 };
 
-void plotEffMuCent_v3(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
-  std::string reco = "/Users/soohwanlee/RunPreparation/store/Forest_HIMinimumBias2_run327237_merged.root";
+void plotEffMuCent_v3(std::string filen ="L3_crabbed_1171_201005" /*"1v_MBL3"*/){
+  std::string reco = "./Large_Files/Forest_HIMinimumBias2_run327237_merged.root";
   RecoReader recoInfo(reco, false);
   const auto nEntries = recoInfo.getEntries();
   TFile* l3t = new TFile(("Large_Files/"+filen+".root").c_str(),"open");
@@ -70,6 +70,11 @@ void plotEffMuCent_v3(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
 
   //initiate ratio map
   std::map<std::string, std::pair<TH1D, TH1D> > ratioM;
+  struct threeh{
+    TH1D hrec, hon, honf;
+  };
+std::vector<struct threeh> histv;
+
 /*  for(int i=0; i<13; i++){
     TBranch* br = (TBranch*) blist->At(i+2);
     std::string pname = br->GetName();
@@ -89,14 +94,15 @@ void plotEffMuCent_v3(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
     t1->SetBranchAddress(pname.c_str(), &TC);
     for(std::vector<std::pair<int, int> >::const_iterator it = evl.begin(); it != evl.end(); it++){
       int oev = it->first; int rev = it->second;
-      count++;
+
       t1->GetEntry(oev);
       recoInfo.setEntry(rev, false, true);
       const auto particles = recoInfo.getParticles("muon");
       int cEntries = TC->GetEntries();
       const auto centI = recoInfo.getCentrality();
-      if((count%1000)==0){std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
+      if((count%100000)==0){std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
       std::cout <<"Idx: "<<oev<< " / "<<rev << std::endl;} 
+      count++;
       if(cEntries>0){
 //	std::cout << "matching online muon: " <<pname.c_str() << "cEntries: "<< cEntries << std::endl;
 	for( auto recM : particles ){
@@ -128,8 +134,13 @@ void plotEffMuCent_v3(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
     h4->Divide(hr);
     h3->SetName(Form("%s_online",pname.c_str()));
     h4->SetName(Form("%s_online fake",pname.c_str()));
+    hr->SetName(Form("%s_online fake_denom",pname.c_str()));
+    ho->SetName(Form("%s_online fake_num",pname.c_str()));
+    hof->SetName(Form("%s_online fake_num",pname.c_str()));
     std::pair<TH1D, TH1D> hp = std::make_pair(*h3, *h4);
     ratioM.insert(std::pair<std::string, std::pair<TH1D, TH1D> >(pname, hp));
+    struct threeh tran = {*hr, *ho, *hof};
+    histv.push_back(tran);
     hr->Clear(); ho->Clear(); hof->Clear(); h3->Delete(); h4->Delete();
   }
   std::cout<< std::endl;
@@ -137,19 +148,28 @@ void plotEffMuCent_v3(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
 
   //modify plots & draw
   TFile* out = new TFile(("outputratioL3_"+filen+".root").c_str(),"recreate");
+  std::vector<struct threeh>::iterator vit = histv.begin();
   for(std::map<std::string, std::pair<TH1D, TH1D> >::const_iterator itt = ratioM.begin(); itt != ratioM.end(); itt++){
     auto name = itt->first;
     makeDirFile(out, name);
     TDirectory* subdir_ = out ->GetDirectory(name.c_str());
     TH1D HO = itt->second.first;
     TH1D HOF = itt->second.second;
+    TH1D HON = vit->hon;
+    TH1D HOFN = vit->honf;
+    TH1D HRD = vit->hrec;
     //HO.SetName(Form("%s_online",name.c_str()));
     //HOF.SetName(Form("%s_oneline_fake",name.c_str()));
     subdir_->cd();
     HO.Write();
     HOF.Write();
+    HON.Write();
+    HOFN.Write();
+    HRD.Write();
+    vit++;
   }
   out->Write();
   out->Close();
   std::cout << "Done Saving" << std::endl;
+  l3t->Close();
 }

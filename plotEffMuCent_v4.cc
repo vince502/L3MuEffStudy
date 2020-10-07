@@ -9,6 +9,11 @@
 #include <TStopwatch.h>
 #include "Cent_plotTurnOn.h"
 
+struct threeh{
+  TH1D hrec, hon, honf;
+};
+
+//Progress Printer
 void Printprogress(float progress, Double_t time){
   if( progress <1.0){
     int barWidth = 70;
@@ -26,42 +31,39 @@ void Printprogress(float progress, Double_t time){
   else std::cout << std::endl;
 }
 
+//TFile make directory
 void makeDirFile(TFile *f1, const std::string& dir)
 {
   TDirectory* subdir = f1->mkdir(dir.c_str());
 };
 
+//Main Function
 void plotEffMuCent_v4(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
-  std::string reco = "/Users/soohwanlee/RunPreparation/store/Forest_HIMinimumBias2_run327237_merged.root";
-
-  //initiate evt number list
-
+  std::string reco = "Large_Files/Forest_HIMinimumBias2_run327237_merged.root";
 
   //initiate ratio map
-  std::map<std::string, std::pair<TH1D, TH1D> > ratioM;
-/*  for(int i=0; i<13; i++){
-    TBranch* br = (TBranch*) blist->At(i+2);
-    std::string pname = br->GetName();
-    ratioM[pname] = std::make_pair(TH1D(("H_"), ("Ratio " + pname).c_str(),20, 0, 100),TH1D("H2",("Fake Ratio "+ panem).c_str(),20, 0, 100));
-  }*/
+  std::map<std::string, std::pair<TH1D, TH1D> > ratioM; 
 
-  //fill ratio
+  std::vector<struct threeh> vit;
+
+  //Initiate Multi-Threading
   const int nCores = 13;
   ROOT::EnableImplicitMT();
   ROOT::TProcessExecutor mpe(nCores);
-
+ 
+  //Multi-THread fill ratio function
   TH1::AddDirectory(kFALSE);
   auto fillRatio = [=](int idx)
   {
+  //fill event pair vector
   std::ifstream evml;
-  evml.open(("./matchTXT/realEvtpair_"+filen+".txt").c_str());
+  evml.open(("realEvtpair_"+filen+".txt").c_str());
   std::vector<std::pair<int, int> >evl;
   std::string str;
   int icount=0;
   while( getline(evml, str)){
     if((icount%10000)==0){std::cout << "Getting line: " << icount << "\r"; std::cout.flush();}
     icount++;
-//    if(icount >100000){break;}
     int oev, rev;
     std::istringstream strb(str);
     strb >> oev >> rev;
@@ -69,8 +71,9 @@ void plotEffMuCent_v4(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
     evl.push_back(pbuf);
   }
   evml.close();
-  std::cout<< std::endl;
   std::cout<< "DONE Evt Init" <<std::endl;
+
+  //File Initiate
   RecoReader recoInfo(reco, false);
   const auto nEntries = recoInfo.getEntries();
   TFile* l3t = new TFile(("Large_Files/"+filen+".root").c_str(),"open");
@@ -79,33 +82,43 @@ void plotEffMuCent_v4(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
   TObjArray* blist = t1->GetListOfBranches();
   int oEvent;
   t1->SetBranchAddress("Event", &oEvent);
-//  t1->SetBranchStatus("*",0);
-//  t1->SetBranchStatus("Event",1);
-//  t1->SetBranchStatus("Run",1);
   Long64_t onentries = t1->GetEntries();
   static const int Max_mu_size = 32000;
   TClonesArray* TC = new TClonesArray("TLorentzVector", Max_mu_size);
+
   int count=0;
+
+
+  //Init Histograms
+  TH1::SetDefaultSumw2;
   TH1D* hr = new TH1D("hr","hr", 20,0, 100);
   TH1D* ho = new TH1D("ho","ho", 20,0, 100);
   TH1D* hof = new TH1D("hof","hof", 20,0, 100);
+  hr->Sumw2();
+  ho->Sumw2();
+  hof->Sumw2();
   std::cout << "total Events: " << evl.size() << std::endl;
+  
+  //RECO muon init
   recoInfo.initBranches("muon");
+
+  //Branch Set
   TBranch* br = (TBranch*) blist->At(idx+2);
   std::string pname = br->GetName();
   t1->SetBranchAddress(pname.c_str(), &TC);
+
+  //Loop over muons
   for(std::vector<std::pair<int, int> >::const_iterator it = evl.begin(); it != evl.end(); it++){
     int oev = it->first; int rev = it->second;
-    count++;
     t1->GetEntry(oev);
     recoInfo.setEntry(rev, false, true);
     const auto particles = recoInfo.getParticles("muon");
     int cEntries = TC->GetEntries();
     const auto centI = recoInfo.getCentrality();
-    if((count%1000)==0){std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
-    std::cout <<"Idx: "<<oev<< " / "<<rev << std::endl;} 
+    if((count%100000)==0){std::cout << "[INFO] Core: ["<< idx <<"], doing entry: "<< count<< std::endl; /*std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
+    std::cout <<"Idx: "<<oev<< " / "<<rev << std::endl;*/} 
+    count++;
     if(cEntries>0){
-//    std::cout << "matching online muon: " <<pname.c_str() << "cEntries: "<< cEntries << std::endl;
       for( auto recM : particles ){
         double rpt = recM.first.Pt();
         double reta = recM.first.Eta();
@@ -133,10 +146,15 @@ void plotEffMuCent_v4(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
   TH1D* h4 = (TH1D*) hof->Clone("h3");
   h3->Divide(hr);
   h4->Divide(hr);
-  h3->SetName(Form("%s_online",pname.c_str()));
-  h4->SetName(Form("%s_online fake",pname.c_str()));
-  std::pair<TH1D, TH1D> hp = std::make_pair(*h3, *h4);
-  auto ratioP = std::pair<std::string, std::pair<TH1D, TH1D> >(pname, hp);
+  h3->SetName(Form("%s_online_ratio",pname.c_str()));
+  h4->SetName(Form("%s_online_fake_ratio",pname.c_str()));
+  hr->SetName(Form("%s_reco",pname.c_str()));
+  ho->SetName(Form("%s_online",pname.c_str()));
+  hof->SetName(Form("%s_online fake",pname.c_str()));
+  std::pair<TH1D, TH1D> hp = std::pair(*h3, *h4);
+  auto ratiop1 = std::pair<std::string, std::pair<TH1D, TH1D> >(pname, hp);
+  struct threeh tran = {*hr, *ho, *hof};
+  auto ratioP = std::make_pair(ratiop1, tran);
   hr->Clear(); ho->Clear(); hof->Clear(); h3->Delete(); h4->Delete();
   
   std::cout<< std::endl;
@@ -145,24 +163,51 @@ void plotEffMuCent_v4(std::string filen ="L3_crabbed_1171_part1" /*"1v_MBL3"*/){
   };
   
   const auto& res = mpe.Map(fillRatio, ROOT::TSeqI(nCores));
-
+  std::cout << "DEBUG split" << std::endl;
   for (const auto& r: res){
-    ratioM.insert(r);
+    ratioM.insert(r.first);
+    vit.push_back(r.second);
   }
   std::cout << "DONE allocating ratio maps" << std::endl;
   //modify plots & draw
-  TFile* out = new TFile(("outputratioL3_"+filen+".root").c_str(),"recreate");
-  for(std::map<std::string, std::pair<TH1D, TH1D> >::const_iterator itt = ratioM.begin(); itt != ratioM.end(); itt++){
+  TFile* out = new TFile(("outputratioL3_"+filen+"_MT.root").c_str(),"recreate");
+  std::vector<struct threeh>::iterator vitt = vit.begin();
+  for(std::map<std::string, std::pair<TH1D, TH1D> >::iterator itt = ratioM.begin(); itt != ratioM.end(); itt++){
+
     auto name = itt->first;
+    std::cout << "Saving Histogram: " << name << std::endl; 
     makeDirFile(out, name);
     TDirectory* subdir_ = out ->GetDirectory(name.c_str());
     TH1D HO = itt->second.first;
     TH1D HOF = itt->second.second;
-    //HO.SetName(Form("%s_online",name.c_str()));
-    //HOF.SetName(Form("%s_oneline_fake",name.c_str()));
+    TH1D HON, HOFN, HRD;
+    std::string honame = HO.GetName();
+    honame = honame.substr(0,honame.size()-6);
+    std::cout << "Parsed: " << honame << std::endl;
+    for(std::vector<struct threeh>::iterator vitt = vit.begin(); vitt != vit.end(); vitt++){
+      TH1D HON_ = vitt->hon;
+      TH1D HOFN_ = vitt->honf;
+      TH1D HRD_ = vitt->hrec;
+      std::string Hname = HON_.GetName();
+      if( Hname.compare(honame) ==0){
+	HON = HON_;
+        HOFN = HOFN_;
+        HRD = HRD_;
+      }
+    }
+    HO.SetTitle(Form("Ratio %s_online",name.c_str()));
+    HOF.SetTitle(Form("Ratio %s_online fake",name.c_str()));
+    HON.SetTitle(Form("%s_online",name.c_str()));
+    HOFN.SetTitle(Form("%s_online fake",name.c_str()));
+    HRD.SetTitle(Form("%s_reco",name.c_str()));
     subdir_->cd();
+    std::cout<< HO.GetName() << std::endl;
     HO.Write();
     HOF.Write();
+    HON.Write();
+    HOFN.Write();
+    HRD.Write();
+    vitt++;
   }
   out->Write();
   out->Close();
