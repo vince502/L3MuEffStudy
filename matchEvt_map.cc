@@ -10,8 +10,8 @@
 #include "Cent_plotTurnOn.h"
 
 void matchEvt_map(){
-  std::string of = "1v_MBL3";
-  std::string reco = "/Users/soohwanlee/RunPreparation/store/Forest_HIMinimumBias2_run327237_merged.root";
+  std::string of = "L3_crabbed_1178_wL2fix_part_1";
+  std::string reco = "./Large_Files/Forest_HIMinimumBias2_run327237_merged.root";
   RecoReader recoInfo(reco, false);
   const auto nEntries = recoInfo.getEntries();
   TFile* l3t = new TFile(("Large_Files/"+of+".root").c_str(),"open");
@@ -73,5 +73,6 @@ void matchEvt_map(){
       if((count2%10000)==0){std::cout << "Written " << count2 << " events" <<"\r";}
     }
     std::cout.flush();
-    std::cout<< "JOB Done" << std::endl; 
+    std::cout<< "JOB Done" << std::endl;
+    out.close(); 
 }

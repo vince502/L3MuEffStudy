@@ -71,6 +71,7 @@ private:
   double ipt, ieta, iphi;
 
   //Initialize TClonesArray
+  TClonesArray* L2MuonProducer_hltL2MuonsPPOnAA           ; 
   TClonesArray* TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA           ; 
   TClonesArray* TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA      ; 
   TClonesArray* TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA      ; 
@@ -86,6 +87,7 @@ private:
   TClonesArray* ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA;
 
   //Initialize Token
+  edm::EDGetTokenT<reco::TrackCollection> token_hltL2MuonsPPOnAA_;
   edm::EDGetTokenT<reco::TrackCollection> token_hltIterL3OIMuCtfWithMaterialTracksPPOnAA_;
   edm::EDGetTokenT<reco::TrackCollection> token_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA_;
   edm::EDGetTokenT<reco::TrackCollection> token_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA_;
@@ -105,6 +107,7 @@ private:
 L3PAnalyzer::L3PAnalyzer(const edm::ParameterSet& iConfig) {
 
   //TClonesArray pointers
+  L2MuonProducer_hltL2MuonsPPOnAA                                     = new TClonesArray("TLorentzVector", Max_mu_size);
   TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA            = new TClonesArray("TLorentzVector", Max_mu_size);
   TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA       = new TClonesArray("TLorentzVector", Max_mu_size);
   TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA       = new TClonesArray("TLorentzVector", Max_mu_size);
@@ -120,6 +123,7 @@ L3PAnalyzer::L3PAnalyzer(const edm::ParameterSet& iConfig) {
   ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA = new TClonesArray("TLorentzVector", Max_mu_size);
 
   //Token consumes
+  token_hltL2MuonsPPOnAA_                          = consumes<reco::TrackCollection>(edm::InputTag("hltL2MuonsPPOnAA"));
   token_hltIterL3OIMuCtfWithMaterialTracksPPOnAA_ = consumes<reco::TrackCollection>(edm::InputTag("hltIterL3OIMuCtfWithMaterialTracksPPOnAA"));
   token_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA_= consumes<reco::TrackCollection>(edm::InputTag("hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA"));
   token_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA_= consumes<reco::TrackCollection>(edm::InputTag("hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA"));
@@ -137,6 +141,7 @@ L3PAnalyzer::L3PAnalyzer(const edm::ParameterSet& iConfig) {
 
 L3PAnalyzer::~L3PAnalyzer(){
   //Array Clear
+  L2MuonProducer_hltL2MuonsPPOnAA->Clear()           ; 
   TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA->Clear()           ; 
   TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA->Clear()      ; 
   TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA->Clear()      ;
@@ -153,16 +158,12 @@ L3PAnalyzer::~L3PAnalyzer(){
 
 } 
 
-void L3PAnalyzer::beginRun(const edm::Run& r, const edm::EventSetup& iSetup) {}
+void L3PAnalyzer::beginRun(const edm::Run& r, const edm::EventSetup& iSetup) {
 
-
-void L3PAnalyzer::endRun(const edm::Run& r, const edm::EventSetup& iSetup) {
-return;}
-
-void L3PAnalyzer::beginJob(){
   myTree_ = fs_->make<TTree>("L3Track", "L3Track Tree");
   myTree_->Branch("Run", &irun, "Run/I");
   myTree_->Branch("Event", &ievt, "Event/I");
+  myTree_->Branch("L2MuonProducer_hltL2MuonsPPOnAA","TClonesArray" , &L2MuonProducer_hltL2MuonsPPOnAA, 32000, 0);
   myTree_->Branch("TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA","TClonesArray" , &TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA, 32000, 0);
   myTree_->Branch("TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA","TClonesArray" , &TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA, 32000, 0);
   myTree_->Branch("TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA","TClonesArray" , &TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA, 32000, 0);
@@ -176,6 +177,14 @@ void L3PAnalyzer::beginJob(){
   myTree_->Branch("L3MuonCandidateProducer_hltIterL3OIL3MuonCandidatesPPOnAA","TClonesArray" , &L3MuonCandidateProducer_hltIterL3OIL3MuonCandidatesPPOnAA , 32000, 0);
   myTree_->Branch("L3MuonCandidateProducerFromMuons_hltIterL3MuonCandidatesPPOnAA"   ,"TClonesArray" , &L3MuonCandidateProducerFromMuons_hltIterL3MuonCandidatesPPOnAA, 32000, 0);
   myTree_->Branch("ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA"   ,"TClonesArray" , &ConcreteChargedCandidateProducer_hltIter3IterL3MuonL2CandidatesPPOnAA, 32000, 0);
+}
+
+
+void L3PAnalyzer::endRun(const edm::Run& r, const edm::EventSetup& iSetup) {
+return;}
+
+void L3PAnalyzer::beginJob(){
+
 
   std::cout << "Begin Job" << std::endl;
 }
@@ -190,6 +199,7 @@ void L3PAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
   irun = iEvent.id().run();
   
   //Handler
+  edm::Handle<reco::TrackCollection> hltL2MuonsPPOnAA;
   edm::Handle<reco::TrackCollection> hltIterL3OIMuCtfWithMaterialTracksPPOnAA;
   edm::Handle<reco::TrackCollection> hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA       ;
   edm::Handle<reco::TrackCollection> hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA       ;
@@ -205,6 +215,7 @@ void L3PAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
   edm::Handle<reco::RecoChargedCandidateCollection> hltIter3IterL3MuonL2CandidatesPPOnAA; 
 
   //GetByToken
+  iEvent.getByToken(token_hltL2MuonsPPOnAA_ , hltL2MuonsPPOnAA);
   iEvent.getByToken(token_hltIterL3OIMuCtfWithMaterialTracksPPOnAA_, hltIterL3OIMuCtfWithMaterialTracksPPOnAA);
   iEvent.getByToken(token_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA_      , hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA      );
   iEvent.getByToken(token_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA_      , hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA      );
@@ -220,6 +231,7 @@ void L3PAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
   iEvent.getByToken(token_hltIter3IterL3MuonL2CandidatesPPOnAA_, hltIter3IterL3MuonL2CandidatesPPOnAA);
 
   //FillArray
+  fillArray<edm::Handle<reco::TrackCollection>>(L2MuonProducer_hltL2MuonsPPOnAA                                    ,hltL2MuonsPPOnAA                                    );
   fillArray<edm::Handle<reco::TrackCollection>>(TrackProducer_hltIterL3OIMuCtfWithMaterialTracksPPOnAA           ,hltIterL3OIMuCtfWithMaterialTracksPPOnAA           );
   fillArray<edm::Handle<reco::TrackCollection>>(TrackProducer_hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA      ,hltIter0IterL3MuonCtfWithMaterialTracksPPOnAA      );
   fillArray<edm::Handle<reco::TrackCollection>>(TrackProducer_hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA      ,hltIter2IterL3MuonCtfWithMaterialTracksPPOnAA      );
