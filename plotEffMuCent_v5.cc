@@ -38,7 +38,7 @@ void makeDirFile(TFile *f1, const std::string& dir)
 };
 
 //Main Function
-void plotEffMuCent_v5(std::string filen ="L3_crabbed_1178_wL2fix"){
+void plotEffMuCent_v5(std::string filen ="L3_crabbed_1176_wL2fix"){
   std::string reco = "Large_Files/Forest_HIMinimumBias2_run327237_merged.root";
 
   //initiate ratio map
@@ -116,7 +116,7 @@ void plotEffMuCent_v5(std::string filen ="L3_crabbed_1178_wL2fix"){
     recoInfo.setEntry(rev, false, true);
     const auto particles = recoInfo.getParticles("muon");
     int cEntries = TC->GetEntries();
-    const auto centI = recoInfo.getCentrality();
+    const auto centI = recoInfo.getCentrality()/2;
     if((count%100000)==0){std::cout << "[INFO] Core: ["<< idx <<"], doing entry: "<< count<< std::endl; /*std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
     std::cout <<"Idx: "<<oev<< " / "<<rev << std::endl;*/} 
     count++;
@@ -131,8 +131,9 @@ void plotEffMuCent_v5(std::string filen ="L3_crabbed_1178_wL2fix"){
       for(int k=0; k<cEntries; k++){
 	bool OMatched = false;
         TLorentzVector* onmuon = (TLorentzVector*) TC->At(k);
+	double dRcut = pname.find("L2") ? 0.3 : 0.1;
+	if(onmuon->DeltaR(recomuon) < dRcut && std::abs(onmuon->Pt()-recomuon.Pt())/recomuon.Pt() < 0.1){isMatched = true; OMatched = true;}
 
-	if(onmuon->DeltaR(recomuon) <0.1 && std::abs(onmuon->Pt()-recomuon.Pt())/recomuon.Pt() < 0.1){isMatched = true; OMatched = true;}
         OMatchedV[k] = OMatchedV[k]||OMatched;
       }
       if(isMatched){ho->Fill(centI);}
@@ -143,7 +144,7 @@ void plotEffMuCent_v5(std::string filen ="L3_crabbed_1178_wL2fix"){
     }
   }
   TH1D* h3 = (TH1D*) ho->Clone("h3");
-  TH1D* h4 = (TH1D*) hof->Clone("h3");
+  TH1D* h4 = (TH1D*) hof->Clone("h4");
   h3->Divide(hr);
   h4->Divide(hrof);
   h3->SetName(Form("%s_efficiency",pname.c_str()));
@@ -171,7 +172,7 @@ void plotEffMuCent_v5(std::string filen ="L3_crabbed_1178_wL2fix"){
   }
   std::cout << "DONE allocating ratio maps" << std::endl;
   //modify plots & draw
-  TFile* out = new TFile(("outputratioL3_"+filen+"_MT.root").c_str(),"recreate");
+  TFile* out = new TFile(("outputratioL3_"+filen+"L2_MT.root").c_str(),"recreate");
   std::vector<struct fourh>::iterator vitt = vit.begin();
   for(std::map<std::string, std::pair<TH1D, TH1D> >::iterator itt = ratioM.begin(); itt != ratioM.end(); itt++){
 
