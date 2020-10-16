@@ -12,7 +12,7 @@
 #include <TList.h>
 #include "Cent_plotTurnOn.h"
 
-void modify_Ratio_graph(std::string jobname = "L3_crabbed_1176_wL2fixL2_MT"){
+void modify_Ratio_graph(std::string jobname = "L3_crabbed_1176_wL2fix_MT"){
   TFile* f1 = new TFile(Form("./outputtrees/outputratioL3_%s.root",jobname.c_str()), "open");
   TFile* f2 = new TFile(Form("./outputtrees/Ratioplots_%s.root",jobname.c_str()), "recreate");
   f1->cd();

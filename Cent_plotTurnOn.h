@@ -263,6 +263,18 @@ class RecoReader : public TreeReaderBase
     return particles;
   };
 
+  std::vector<std::pair<TLorentzVector, bool> >getParticlesraw(const std::string& type) const
+  {
+    if (onDemand_) { loadEntry("ggHiNtuplizerGED"); }
+    if (getSize(type)==0) return {};
+    // loop over muons
+    std::vector<std::pair<TLorentzVector, bool> >particlesraw;
+    for (size_t i=0; i<getSize(type); i++) {
+      particlesraw.push_back({getP4(type, i), passParticleCut(type, i)});
+    }
+    return particlesraw;
+  };
+
   bool passEventSelection() const
   {
     if (onDemand_) { loadEntry("skimanalysis"); }

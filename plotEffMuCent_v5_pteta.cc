@@ -44,7 +44,7 @@ void plotEffMuCent_v5_pteta(std::string filen ="L3_crabbed_1176_wL2fix"){
 
   //initiate ratio map
   std::map<std::string, std::pair<std::pair<TH2D, TH2D>, std::pair<TH2D, TH2D> > > ratioM; 
-  int modulen = 14;
+  int modulen = 1;
   std::vector<std::pair<struct fourh, struct fourh> > vit;
 
   //Initiate Multi-Threading
@@ -138,10 +138,7 @@ void plotEffMuCent_v5_pteta(std::string filen ="L3_crabbed_1176_wL2fix"){
     std::cout <<"Idx: "<<oev<< " / "<<rev << std::endl;*/} 
     count++;
     //initialize fake boolian vector
-    std::vector<bool>  OMatchedV;
-    for(int j =0; j < cEntries; j++){
-      OMatchedV.push_back(false);
-    }
+    std::vector<bool> OMatchedV(cEntries, false);
     //fill
     for( auto recM : particles){
       TLorentzVector recomuon = recM.first;
