@@ -39,7 +39,7 @@ void makeDirFile(TFile *f1, const std::string& dir)
 };
 
 //Main Function
-void plotEffMuCent_v5_pteta(std::string filen ="L3_crabbed_1176_wL2fix"){
+void plotEffMuCent_v5_pteta_hwan(std::string filen ="L3_crabbed_1176_wL2fix"){
   std::string reco = "Large_Files/Forest_HIMinimumBias2_run327237_merged.root";
 
   //initiate ratio map
@@ -140,7 +140,7 @@ void plotEffMuCent_v5_pteta(std::string filen ="L3_crabbed_1176_wL2fix"){
     count++;
     //initialize fake boolian vector
    // std::vector<bool> OMatchedV(cEntries, false);
-    std::vector< std::pair< bool, bool > > OMatchedV(cEntries, {false, true});
+    std::vector< std::pair< bool, bool > > OMatchedV(cEntries, {false, false});
     //fill
     for( auto recM : particles){
       TLorentzVector recomuon = recM.first;
@@ -154,14 +154,14 @@ void plotEffMuCent_v5_pteta(std::string filen ="L3_crabbed_1176_wL2fix"){
       for(int k=0; k<cEntries; k++){
 	bool OMatched = false;
         TLorentzVector* onmuon = (TLorentzVector*) TC->At(k);
-	if ( !(std::abs(onmuon->Eta())<0.3 && onmuon->Pt()>=3.4) ||
+	if ( (std::abs(onmuon->Eta())<0.3 && onmuon->Pt()>=3.4) ||
 	     (0.3<=std::abs(onmuon->Eta())<1.1 && onmuon->Pt()>=3.3) ||
 	     (1.1<=std::abs(onmuon->Eta())<1.4 && onmuon->Pt()>=7.7-4.0*std::abs(onmuon->Eta())) ||
 	     (1.4<=std::abs(onmuon->Eta())<1.55 && onmuon->Pt()>=2.1) ||
 	     (1.55<=std::abs(onmuon->Eta())<2.2 && onmuon->Pt()>=4.25 -1.39*std::abs(onmuon->Eta())) ||
 	     (2.2<=std::abs(onmuon->Eta())<2.4 && onmuon->Pt()>=1.2)
 	   )
-	   { OMatchedV[k].second=false; continue;}
+	   { OMatchedV[k].second=true; continue;}
 	double dRcut = pname.find("L2") ? 0.3 : 0.1;
 	if(onmuon->DeltaR(recomuon) < dRcut && std::abs(onmuon->Pt()-recomuon.Pt())/recomuon.Pt() < 0.1){isMatched = true; OMatched = true;}
         OMatchedV[k].first = OMatchedV[k].first||OMatched;
