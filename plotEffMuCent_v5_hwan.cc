@@ -39,7 +39,7 @@ void makeDirFile(TFile *f1, const std::string& dir)
 
 //Main Function
 void plotEffMuCent_v5_hwan(std::string filen ="L3_crabbed_1176_wL2fix"){
-  std::string reco = "Large_Files/Forest_HIMinimumBias2_run327237_merged.root";
+  std::string reco = "../L3MuEffStudy/Large_Files/Forest_HIMinimumBias2_run327237_merged.root";
 
   //initiate ratio map
   std::map<std::string, std::pair<TH1D, TH1D> > ratioM; 
@@ -76,7 +76,7 @@ void plotEffMuCent_v5_hwan(std::string filen ="L3_crabbed_1176_wL2fix"){
   //File Initiate
   RecoReader recoInfo(reco, false);
   const auto nEntries = recoInfo.getEntries();
-  TFile* l3t = new TFile(("Large_Files/"+filen+".root").c_str(),"open");
+  TFile* l3t = new TFile(("../L3MuEffStudy/Large_Files/"+filen+".root").c_str(),"open");
   TTree* t1 = (TTree*) l3t->Get("l3pAnalyzer/L3Track");
   TTreeReader r1 = TTreeReader("l3pAnalyzer/L3Track",l3t);
   TObjArray* blist = t1->GetListOfBranches();
@@ -185,7 +185,7 @@ void plotEffMuCent_v5_hwan(std::string filen ="L3_crabbed_1176_wL2fix"){
   }
   std::cout << "DONE allocating ratio maps" << std::endl;
   //modify plots & draw
-  TFile* out = new TFile(("outputratioL3_"+filen+"L2_MT.root").c_str(),"recreate");
+  TFile* out = new TFile(("outputratioL3_"+filen+"L2_MT_gyeonghwan.root").c_str(),"recreate");
   std::vector<struct fourh>::iterator vitt = vit.begin();
   for(std::map<std::string, std::pair<TH1D, TH1D> >::iterator itt = ratioM.begin(); itt != ratioM.end(); itt++){
 
