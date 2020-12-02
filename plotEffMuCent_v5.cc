@@ -13,10 +13,10 @@ struct fourh{
   TH1D hrec, hon, honf, hronf;
 };
 
-bool SetOEntry(std::pair<Long64_t, Long64_t>& recoevt, TTree& t1){
-  const auto index = t1.GetEntryNumberWithIndex(recoevt.first, recoevt.second);
+bool SetOEntry(const std::pair<Long64_t, Long64_t>& recoevt, TTree* t1){
+  const auto index = t1->GetEntryNumberWithIndex(recoevt.first, recoevt.second);
   if (index<0) { return false;}
-  t1.SetEntry(index);
+  t1->GetEntry(index);
   return true;
 };
 
@@ -87,7 +87,7 @@ void plotEffMuCent_v5(std::string filen ="L3_crabbed_1176_wL2fix"){
   TTree* t1 = (TTree*) l3t->Get("l3pAnalyzer/L3Track");
   TTreeReader r1 = TTreeReader("l3pAnalyzer/L3Track",l3t);
   TObjArray* blist = t1->GetListOfBranches();
-  long long oEvent, oRun;
+  Int_t oEvent, oRun;
   t1->SetBranchAddress("Event", &oEvent);
   t1->SetBranchAddress("Run", &oRun);
   Long64_t onentries = t1->GetEntries();
@@ -115,8 +115,6 @@ void plotEffMuCent_v5(std::string filen ="L3_crabbed_1176_wL2fix"){
   //Online Build Index
   t1->BuildIndex("Run","Event");
 
-
-
   //Branch Set
   TBranch* br = (TBranch*) blist->At(idx+2);
   std::string pname = br->GetName();
@@ -130,7 +128,7 @@ void plotEffMuCent_v5(std::string filen ="L3_crabbed_1176_wL2fix"){
 //    t1->GetEntry(oev);
     recoInfo.setEntry(iEntry, false, true);
 //    if (!triggerInfo.setEntry(recoInfo.getEventNumber(), false, true)) continue;
-    if( !SetOEntry( recoInfo.getEventNumber(), t1)) continue;
+    if( !SetOEntry(recoInfo.getEventNumber(), t1)) continue;
     const auto particles = recoInfo.getParticles("muon");
     int cEntries = TC->GetEntries();
     const auto centI = recoInfo.getCentrality()/2;
