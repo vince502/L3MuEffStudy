@@ -103,7 +103,7 @@ void plotEffMuCent_v5_hwan(std::string filen ="L3_crabbed_1176_wL2fix"){
   t1->SetBranchAddress(pname.c_str(), &TC);
 
   //Loop over muons
-  for (const auto& iEntry : ROOT::TSeqUL(100/*nEntries*/)){
+  for (const auto& iEntry : ROOT::TSeqUL(nEntries)){
     recoInfo.setEntry(iEntry, false, true);
     const auto particles = recoInfo.getParticles("muon");
     if( !SetOEntry(recoInfo.getEventNumber(), t1)) continue;
