@@ -62,23 +62,6 @@ void plotEffMuCent_v5(std::string filen ="L3_crabbed_1176_wL2fix"){
   TH1::AddDirectory(kFALSE);
   auto fillRatio = [=](int idx)
   {
-  //fill event pair vector
-//  std::ifstream evml;
-//  evml.open(("realEvtpair_"+filen+".txt").c_str());
-//  std::vector<std::pair<int, int> >evl;
-//  std::string str;
-//  int icount=0;
-//  while( getline(evml, str)){
-//    if((icount%10000)==0){std::cout << "Getting line: " << icount << "\r"; std::cout.flush();}
-//    icount++;
-//    int oev, rev;
-//    std::istringstream strb(str);
-//    strb >> oev >> rev;
-//    std::pair<int, int>pbuf = std::make_pair(oev, rev);
-//    evl.push_back(pbuf);
-//  }
-//  evml.close();
-//  std::cout<< "DONE Evt Init" <<std::endl;
 
   //File Initiate
   RecoReader recoInfo(reco, false);
@@ -107,7 +90,6 @@ void plotEffMuCent_v5(std::string filen ="L3_crabbed_1176_wL2fix"){
   ho->Sumw2();
   hof->Sumw2();
   hrof->Sumw2();
-//  std::cout << "total Events: " << evl.size() << std::endl;
   
   //RECO muon init
   recoInfo.initBranches("muon");
@@ -122,12 +104,8 @@ void plotEffMuCent_v5(std::string filen ="L3_crabbed_1176_wL2fix"){
 
 
   //Loop over muons
-  //for(std::vector<std::pair<int, int> >::const_iterator it = evl.begin(); it != evl.end(); it++){
   for (const auto& iEntry : ROOT::TSeqUL(nEntries)){
-//    int oev = it->first; int rev = it->second;
-//    t1->GetEntry(oev);
     recoInfo.setEntry(iEntry, false, true);
-//    if (!triggerInfo.setEntry(recoInfo.getEventNumber(), false, true)) continue;
     if( !SetOEntry(recoInfo.getEventNumber(), t1)) continue;
     const auto particles = recoInfo.getParticles("muon");
     int cEntries = TC->GetEntries();

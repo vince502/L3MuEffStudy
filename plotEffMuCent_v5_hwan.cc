@@ -13,6 +13,13 @@ struct fourh{
   TH1D hrec, hon, honf, hronf;
 };
 
+bool SetOEntry(const std::pair<Long64_t, Long64_t>& recoevt, TTree* t1){
+  const auto index = t1->GetEntryNumberWithIndex(recoevt.first, recoevt.second);
+  if (index<0) { return false;}
+  t1->GetEntry(index);
+  return true;
+};
+
 //Progress Printer
 void Printprogress(float progress, Double_t time){
   if( progress <1.0){
@@ -55,23 +62,6 @@ void plotEffMuCent_v5_hwan(std::string filen ="L3_crabbed_1176_wL2fix"){
   TH1::AddDirectory(kFALSE);
   auto fillRatio = [=](int idx)
   {
-  //fill event pair vector
-  std::ifstream evml;
-  evml.open(("realEvtpair_"+filen+".txt").c_str());
-  std::vector<std::pair<int, int> >evl;
-  std::string str;
-  int icount=0;
-  while( getline(evml, str)){
-    if((icount%10000)==0){std::cout << "Getting line: " << icount << "\r"; std::cout.flush();}
-    icount++;
-    int oev, rev;
-    std::istringstream strb(str);
-    strb >> oev >> rev;
-    std::pair<int, int>pbuf = std::make_pair(oev, rev);
-    evl.push_back(pbuf);
-  }
-  evml.close();
-  std::cout<< "DONE Evt Init" <<std::endl;
 
   //File Initiate
   RecoReader recoInfo(reco, false);
@@ -80,8 +70,9 @@ void plotEffMuCent_v5_hwan(std::string filen ="L3_crabbed_1176_wL2fix"){
   TTree* t1 = (TTree*) l3t->Get("l3pAnalyzer/L3Track");
   TTreeReader r1 = TTreeReader("l3pAnalyzer/L3Track",l3t);
   TObjArray* blist = t1->GetListOfBranches();
-  int oEvent;
+  Int_t oEvent, oRun;
   t1->SetBranchAddress("Event", &oEvent);
+  t1->SetBranchAddress("Event", &oRun);
   Long64_t onentries = t1->GetEntries();
   static const int Max_mu_size = 32000;
   TClonesArray* TC = new TClonesArray("TLorentzVector", Max_mu_size);
@@ -99,10 +90,12 @@ void plotEffMuCent_v5_hwan(std::string filen ="L3_crabbed_1176_wL2fix"){
   ho->Sumw2();
   hof->Sumw2();
   hrof->Sumw2();
-  std::cout << "total Events: " << evl.size() << std::endl;
   
   //RECO muon init
   recoInfo.initBranches("muon");
+
+  //Online Build Index
+  t1->BuildIndex("Run","Event");
 
   //Branch Set
   TBranch* br = (TBranch*) blist->At(idx+2);
@@ -110,11 +103,10 @@ void plotEffMuCent_v5_hwan(std::string filen ="L3_crabbed_1176_wL2fix"){
   t1->SetBranchAddress(pname.c_str(), &TC);
 
   //Loop over muons
-  for(std::vector<std::pair<int, int> >::const_iterator it = evl.begin(); it != evl.end(); it++){
-    int oev = it->first; int rev = it->second;
-    t1->GetEntry(oev);
-    recoInfo.setEntry(rev, false, true);
+  for (const auto& iEntry : ROOT::TSeqUL(100/*nEntries*/)){
+    recoInfo.setEntry(iEntry, false, true);
     const auto particles = recoInfo.getParticles("muon");
+    if( !SetOEntry(recoInfo.getEventNumber(), t1)) continue;
     int cEntries = TC->GetEntries();
     const auto centI = recoInfo.getCentrality()/2;
     if((count%100000)==0){std::cout << "[INFO] Core: ["<< idx <<"], doing entry: "<< count<< std::endl; /*std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
@@ -185,7 +177,7 @@ void plotEffMuCent_v5_hwan(std::string filen ="L3_crabbed_1176_wL2fix"){
   }
   std::cout << "DONE allocating ratio maps" << std::endl;
   //modify plots & draw
-  TFile* out = new TFile(("outputratioL3_"+filen+"L2_MT_gyeonghwan.root").c_str(),"recreate");
+  TFile* out = new TFile(("outputratioL3_"+filen+"L2_MT_gyeonghwan_code_changed.root").c_str(),"recreate");
   std::vector<struct fourh>::iterator vitt = vit.begin();
   for(std::map<std::string, std::pair<TH1D, TH1D> >::iterator itt = ratioM.begin(); itt != ratioM.end(); itt++){
 
