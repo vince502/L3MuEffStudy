@@ -56,9 +56,9 @@ void plotEffMuCent_PGvsONIA_pteta(std::string filen ="L3_2021May_113X_Pt_0p5_100
   std::string reco = "Oniatree_MC_miniAOD_PG_Pt_0p5_100_Hydjet_5p02TeV_cmssw11_2_2_Run3Cond_merged.root";
 
   //initiate ratio map
-  std::map<std::string, std::pair<TH1D, TH1D> > ratioM; 
+  std::map<std::string, std::pair<std::pair<TH2D, TH2D>, std::pair<TH2D, TH2D> > > ratioM;
   int modulen = 12;
-  std::vector<struct fourh> vit;
+  std::vector<std::pair<struct fourh, struct fourh> > vit;
 
   //Initiate Multi-Threading
   const int nCores = modulen;
@@ -118,7 +118,6 @@ void plotEffMuCent_PGvsONIA_pteta(std::string filen ="L3_2021May_113X_Pt_0p5_100
   hoh->Sumw2();
   hofh->Sumw2();
   hrofh->Sumw2();
-  std::cout << "total Events: " << evl.size() << std::endl;
   
   //RECO muon init
 //  recoInfo.initBranches("muon");
@@ -136,7 +135,7 @@ void plotEffMuCent_PGvsONIA_pteta(std::string filen ="L3_2021May_113X_Pt_0p5_100
   //Loop over muons
   for (const auto& iEntry : ROOT::TSeqUL(nEntries)){
     //test
-    if (count >100) break;
+  //  if (count >300) break;
     myTree->GetEntry(iEntry);
     //recoInfo.setEntry(iEntry, false, true);
     //const auto particles = recoInfo.getParticles("muon");
@@ -144,33 +143,45 @@ void plotEffMuCent_PGvsONIA_pteta(std::string filen ="L3_2021May_113X_Pt_0p5_100
     if( !SetOEntry(rEvent, t1)) continue;
     int cEntries = TC->GetEntries();
     const auto centI =iCent ;// recoInfo.getCentrality()/2;
-    std::cout << "CENT: " << centI << std::endl;
-    if((count%100)==0){std::cout << "[INFO] Core: ["<< idx <<"], doing entry: "<< count<< std::endl; /*std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
+    double centralcut, periphcut;
+    centralcut = 10; periphcut = 40;
+    if( centI > centralcut && centI < periphcut){continue;}
+    if((count%10000)==0){std::cout << "[INFO] Core: ["<< idx <<"], doing entry: "<< count<< std::endl; /*std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
     std::cout <<"Idx: "<<oev<< " / "<<rev << std::endl;*/} 
     count++;
     //std::vector<bool>  OMatchedV;
     std::vector< std::pair< bool, bool > > OMatchedV(cEntries, {false, false});
-    for(int k =0; k < cEntries; k++){
-      TLorentzVector* onmuon = (TLorentzVector*) TC->At(k);
-      if ( (std::abs(onmuon->Eta())<0.3 && onmuon->Pt()>=3.4) ||
-  	    (0.3<=std::abs(onmuon->Eta())<1.1 && onmuon->Pt()>=3.3) ||
-  	    (1.1<=std::abs(onmuon->Eta())<1.4 && onmuon->Pt()>=7.7-4.0*std::abs(onmuon->Eta())) ||
-  	    (1.4<=std::abs(onmuon->Eta())<1.55 && onmuon->Pt()>=2.1) ||
-  	    (1.55<=std::abs(onmuon->Eta())<2.2 && onmuon->Pt()>=4.25 -1.39*std::abs(onmuon->Eta())) ||
-  	    (2.2<=std::abs(onmuon->Eta())<2.4 && onmuon->Pt()>=1.2) )
-	    //OMatchedV.push_back(false);
-  	    {OMatchedV[k].second=true;}
-	double dRcut = pname.find("L2") ? 0.3 : 0.1;
-	if(onmuon->DeltaR(recomuon) < dRcut && std::abs(onmuon->Pt()-recomuon.Pt())/recomuon.Pt() < 0.1){isMatched = true; OMatched = true;}
-        OMatchedV[k].first = OMatchedV[k].first||OMatched;
+    for( auto recM : particles){
+      TLorentzVector* recomuon = (TLorentzVector*) recM;
+      if(centI <= centralcut){
+	hrl->Fill(recomuon->Pt(), recomuon->Eta());
       }
-      if(isMatched){
-	if(centI <= centralcut){
-	  hol->Fill(recomuon.Pt(),recomuon.Eta());
-	}
-	else if(centI >= periphcut){
-	  hoh->Fill(recomuon.Pt(),recomuon.Eta());
-	}
+      else if(centI >= periphcut){
+	hrh->Fill(recomuon->Pt(), recomuon->Eta());
+      }
+      bool isMatched = false;
+      for(int k =0; k < cEntries; k++){
+	bool OMatched = false;
+        TLorentzVector* onmuon = (TLorentzVector*) TC->At(k);
+        if ( (std::abs(onmuon->Eta())<0.3 && onmuon->Pt()>=3.4) ||
+             (0.3<=std::abs(onmuon->Eta())<1.1 && onmuon->Pt()>=3.3) ||
+             (1.1<=std::abs(onmuon->Eta())<1.4 && onmuon->Pt()>=7.7-4.0*std::abs(onmuon->Eta())) ||
+             (1.4<=std::abs(onmuon->Eta())<1.55 && onmuon->Pt()>=2.1) ||
+             (1.55<=std::abs(onmuon->Eta())<2.2 && onmuon->Pt()>=4.25 -1.39*std::abs(onmuon->Eta())) ||
+             (2.2<=std::abs(onmuon->Eta())<2.4 && onmuon->Pt()>=1.2) )
+            //OMatchedV.push_back(false);
+             {OMatchedV[k].second=true; continue;}
+  	double dRcut = pname.find("L2") ? 0.3 : 0.1;
+  	if(onmuon->DeltaR(*recomuon) < dRcut && std::abs(onmuon->Pt()-recomuon->Pt())/recomuon->Pt() < 0.1){isMatched = true; OMatched = true;}
+        OMatchedV[k].first = OMatchedV[k].first||OMatched;
+        if(isMatched){
+  	  if(centI <= centralcut){
+  	    hol->Fill(recomuon->Pt(),recomuon->Eta());
+  	  }
+  	  else if(centI >= periphcut){
+  	    hoh->Fill(recomuon->Pt(),recomuon->Eta());
+	  }
+  	}
       }
     }
     for(int j=0; j < cEntries; j++){
