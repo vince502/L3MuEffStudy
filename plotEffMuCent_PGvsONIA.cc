@@ -8,6 +8,7 @@
 #include <string>
 #include <TStopwatch.h>
 #include "Cent_plotTurnOn.h"
+#include "util.h"
 
 struct fourh{
   TH1D hrec, hon, honf, hronf;
@@ -15,6 +16,12 @@ struct fourh{
 
 bool SetOEntry(const std::pair<Long64_t, Long64_t>& recoevt, TTree* t1){
   const auto index = t1->GetEntryNumberWithIndex(recoevt.first, recoevt.second);
+  if (index<0) { return false;}
+  t1->GetEntry(index);
+  return true;
+};
+bool SetOEntry(const Long64_t& recoevt, TTree* t1){
+  const auto index = t1->GetEntryNumberWithIndex(recoevt);
   if (index<0) { return false;}
   t1->GetEntry(index);
   return true;
@@ -45,12 +52,12 @@ void makeDirFile(TFile *f1, const std::string& dir)
 };
 
 //Main Function
-void plotEffMuCent_v5(std::string filen ="L3_crabbed_1176_wL2fix"){
-  std::string reco = "../L3MuEffStudy/Large_Files/Forest_HIMinimumBias2_run327237_merged.root";
+void plotEffMuCent_PGvsONIA(std::string filen ="L3_2021May_113X_Pt_0p5_100"){
+  std::string reco = "Oniatree_MC_miniAOD_PG_Pt_0p5_100_Hydjet_5p02TeV_cmssw11_2_2_Run3Cond_merged.root";
 
   //initiate ratio map
   std::map<std::string, std::pair<TH1D, TH1D> > ratioM; 
-  int modulen = 14;
+  int modulen = 12;
   std::vector<struct fourh> vit;
 
   //Initiate Multi-Threading
@@ -64,18 +71,26 @@ void plotEffMuCent_v5(std::string filen ="L3_crabbed_1176_wL2fix"){
   {
 
   //File Initiate
-  RecoReader recoInfo(reco, false);
-  const auto nEntries = recoInfo.getEntries();
-  TFile* l3t = new TFile(("../L3MuEffStudy/Large_Files/"+filen+".root").c_str(),"open");
+  //RecoReader recoInfo(reco, false);
+  TFile* recoFile = new TFile(("../L3MuEffStudy/Large_Files/"+reco).c_str(),"READ");
+  TTree* myTree = (TTree*) recoFile->Get("hionia/myTree");
+  TTreeReader r0 = TTreeReader("hionia/myTree");
+  const auto nEntries = myTree->GetEntries(); 
+  TFile* l3t = new TFile(("../L3MuEffStudy/Large_Files/"+filen+".root").c_str(),"READ");
   TTree* t1 = (TTree*) l3t->Get("l3pAnalyzer/L3Track");
   TTreeReader r1 = TTreeReader("l3pAnalyzer/L3Track",l3t);
   TObjArray* blist = t1->GetListOfBranches();
   Int_t oEvent, oRun;
+  UInt_t rEvent;
+  float sumhf;
+  myTree->SetBranchAddress("eventNb", &rEvent);
+  myTree->SetBranchAddress("SumET_HF", &sumhf);
   t1->SetBranchAddress("Event", &oEvent);
   t1->SetBranchAddress("Run", &oRun);
   Long64_t onentries = t1->GetEntries();
   static const int Max_mu_size = 32000;
   TClonesArray* TC = new TClonesArray("TLorentzVector", Max_mu_size);
+  TClonesArray* OTC = new TClonesArray("TLorentzVector", Max_mu_size);
 
   int count=0;
 
@@ -92,48 +107,65 @@ void plotEffMuCent_v5(std::string filen ="L3_crabbed_1176_wL2fix"){
   hrof->Sumw2();
   
   //RECO muon init
-  recoInfo.initBranches("muon");
+//  recoInfo.initBranches("muon");
 
   //Online Build Index
-  t1->BuildIndex("Run","Event");
+  t1->BuildIndex("Event");
+  myTree->BuildIndex("eventNb");
 
   //Branch Set
   TBranch* br = (TBranch*) blist->At(idx+2);
   std::string pname = br->GetName();
   t1->SetBranchAddress(pname.c_str(), &TC);
-
+  myTree->SetBranchAddress("Reco_mu_4mom", &OTC);
 
   //Loop over muons
   for (const auto& iEntry : ROOT::TSeqUL(nEntries)){
-    recoInfo.setEntry(iEntry, false, true);
-    if( !SetOEntry(recoInfo.getEventNumber(), t1)) continue;
-    const auto particles = recoInfo.getParticles("muon");
+    //test
+    //if (count >40000) break;
+    myTree->GetEntry(iEntry);
+    const auto particles = *OTC;
+    if( !SetOEntry(rEvent, t1)) continue;
     int cEntries = TC->GetEntries();
-    const auto centI = recoInfo.getCentrality()/2;
-    if((count%100000)==0){std::cout << "[INFO] Core: ["<< idx <<"], doing entry: "<< count<< std::endl; /*std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
+    const auto centI =getHiBinFromhiHF(sumhf) ;// recoInfo.getCentrality()/2;
+    if((count%1)==100000){std::cout << "[INFO] Core: ["<< idx <<"], doing entry: "<< count<< std::endl; /*std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
     std::cout <<"Idx: "<<oev<< " / "<<rev << std::endl;*/} 
     count++;
-    std::vector<bool>  OMatchedV;
-    for(int j =0; j < cEntries; j++){
-      OMatchedV.push_back(false);
+    std::vector< std::pair< bool, bool > > OMatchedV(cEntries, {false, false});
+    for(int k =0; k < cEntries; k++){
+      TLorentzVector* onmuon = (TLorentzVector*) TC->At(k);
+      if ( (std::abs(onmuon->Eta())<0.3 && onmuon->Pt()>=3.4) ||
+  	    (0.3<=std::abs(onmuon->Eta())<1.1 && onmuon->Pt()>=3.3) ||
+  	    (1.1<=std::abs(onmuon->Eta())<1.4 && onmuon->Pt()>=7.7-4.0*std::abs(onmuon->Eta())) ||
+  	    (1.4<=std::abs(onmuon->Eta())<1.55 && onmuon->Pt()>=2.1) ||
+  	    (1.55<=std::abs(onmuon->Eta())<2.2 && onmuon->Pt()>=4.25 -1.39*std::abs(onmuon->Eta())) ||
+  	    (2.2<=std::abs(onmuon->Eta())<2.4 && onmuon->Pt()>=1.2) )
+	    //OMatchedV.push_back(false);
+  	    {OMatchedV[k].second=true;}
     }
     for( auto recM : particles){
-      TLorentzVector recomuon = recM.first;
+      TLorentzVector* recomuon = (TLorentzVector*) recM;
+     // std::cout << " [RECO] Pt: " << recomuon->Pt() << ", eta: " << recomuon->Eta() << ", Mass: " <<  recomuon->M() << std::endl;
       hr->Fill(centI); 
       bool isMatched = false;
       for(int k=0; k<cEntries; k++){
 	bool OMatched = false;
         TLorentzVector* onmuon = (TLorentzVector*) TC->At(k);
+       // std::cout << "[ONLINE] Pt: " << onmuon->Pt() << ", eta: " << onmuon->Eta() << ", Mass: " <<  onmuon->M() << std::endl;
+	if (!OMatchedV[k].second){continue;}
 	double dRcut = pname.find("L2") ? 0.3 : 0.1;
-	if(onmuon->DeltaR(recomuon) < dRcut && std::abs(onmuon->Pt()-recomuon.Pt())/recomuon.Pt() < 0.1){isMatched = true; OMatched = true;}
+	if(onmuon->DeltaR(*recomuon) < dRcut && std::abs(onmuon->Pt()-recomuon->Pt())/recomuon->Pt() < 0.1){isMatched = true; OMatched = true; } //std::cout << "Is Matched!"<<std::endl;
 
-        OMatchedV[k] = OMatchedV[k]||OMatched;
+        //OMatchedV[k] = OMatchedV[k]||OMatched;
+        OMatchedV[k].first = OMatchedV[k].first||OMatched;
       }
       if(isMatched){ho->Fill(centI);}
     }
     for(int j=0; j < cEntries; j++){
+      if (!OMatchedV[j].second){continue;}
       hrof->Fill(centI);
-      if(!OMatchedV[j]){hof->Fill(centI);}
+      //if(!OMatchedV[j]){hof->Fill(centI);}
+      if(!OMatchedV[j].first){hof->Fill(centI);}
     }
   }
   TH1D* h3 = (TH1D*) ho->Clone("h3");
@@ -165,7 +197,7 @@ void plotEffMuCent_v5(std::string filen ="L3_crabbed_1176_wL2fix"){
   }
   std::cout << "DONE allocating ratio maps" << std::endl;
   //modify plots & draw
-  TFile* out = new TFile(("outputratioL3_"+filen+"L2_MT_soohwan_code_changed.root").c_str(),"recreate");
+  TFile* out = new TFile(("outputratioL3_"+filen+"L2_MT_gyeonghwan_code_changed_PGvsONIAfull.root").c_str(),"recreate");
   std::vector<struct fourh>::iterator vitt = vit.begin();
   for(std::map<std::string, std::pair<TH1D, TH1D> >::iterator itt = ratioM.begin(); itt != ratioM.end(); itt++){
 
@@ -213,4 +245,3 @@ void plotEffMuCent_v5(std::string filen ="L3_crabbed_1176_wL2fix"){
   out->Close();
   std::cout << "Done Saving" << std::endl;
 }
-

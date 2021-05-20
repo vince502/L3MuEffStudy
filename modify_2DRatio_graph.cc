@@ -13,9 +13,26 @@
 #include <TList.h>
 #include "Cent_plotTurnOn.h"
 
-void modify_2DRatio_graph(std::string jobname = "L3_crabbed_1176_wL2fix_PtEta_MT"){
-  TFile* f1 = new TFile(Form("./outputtrees/outputratioL3_%s.root",jobname.c_str()), "open");
-  TFile* f2 = new TFile(Form("./outputtrees/Ratioplots_%s.root",jobname.c_str()), "recreate");
+void accDrawer(TLine lin){
+  lin.SetLineColor(kRed);
+  lin.SetLineWidth(3);
+  lin.DrawLine(1.2, -2.4, 1.2, -2.2);
+  lin.DrawLine(1.2, 2.2, 1.2, 2.4);
+  lin.DrawLine(1.2, -2.2, 2.1, -1.55);
+  lin.DrawLine(1.2, 2.2, 2.1, 1.55);
+  lin.DrawLine(2.1, 1.55, 2.1, 1.4);
+  lin.DrawLine(2.1, -1.55, 2.1, -1.4);
+  lin.DrawLine(3.3, -1.10, 2.1, -1.4);
+  lin.DrawLine(3.3, 1.10, 2.1, 1.4);
+  lin.DrawLine(3.3, 1.10, 3.4, 0.3);
+  lin.DrawLine(3.3, -1.10, 3.4, -0.3);
+  lin.DrawLine(3.4, 0.30, 3.4, -0.3);
+
+};
+
+void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_0p5_100_L2_PtEta_MT_PGvsONIA"){
+  TFile* f1 = new TFile(Form("./outputratioL3_%s.root",jobname.c_str()), "open");
+  TFile* f2 = new TFile(Form("./Ratioplots_%s.root",jobname.c_str()), "recreate");
   f1->cd();
   TList* l1 = gDirectory->GetListOfKeys();
   for( auto keys : *l1){
@@ -68,6 +85,7 @@ void modify_2DRatio_graph(std::string jobname = "L3_crabbed_1176_wL2fix_PtEta_MT
     makeDir(plotDir+ "/pdf/two/");
     makeDir(plotDir+ "/pdf/online/");
     makeDir(plotDir+ "/pdf/fake/");
+    TLine l;
 //    c1->Write();
 /////////////////////////////////////////////////////////////////////////////////////////////////
     c2->cd();
@@ -77,6 +95,7 @@ void modify_2DRatio_graph(std::string jobname = "L3_crabbed_1176_wL2fix_PtEta_MT
     auto legend2 = new TLegend(0.7, 0.8,0.9,0.9);
     legend2->AddEntry(hol,"Online Matched RECO","");
     legend2->Draw();
+    accDrawer(l);
     OE->DrawLatex(0.7,0.76,Form("Online = %i",(int)onEl));
     RE->DrawLatex(0.7,0.7,Form("Reco = %i",(int)reEl));
     TT->DrawLatex(0.1,0.93,Form("Efficiency Plot %s 0-10",ename.c_str()));
@@ -119,11 +138,13 @@ void modify_2DRatio_graph(std::string jobname = "L3_crabbed_1176_wL2fix_PtEta_MT
     auto legend3 = new TLegend(0.7, 0.8,0.9,0.9);
     legend3->AddEntry(hfl,"Online FAKE","");
     legend3->Draw();
+    accDrawer(l);
     OFE->DrawLatex(0.7,0.73,Form("Fake = %i",(int)onfEl));
     RE->DrawLatex(0.7,0.7,Form("Reco = %i",(int)reEl));
     TT->DrawLatex(0.1,0.93,Form("Ratio Plot %s 0-10",ename.c_str()));
     hfl->SetStats(0);
     c3->Draw();
+
     c3->Modified();
     c3->SaveAs((plotDir+"/pdf/fake/fake_"+jobname+ "_" + ename+"_0-10.pdf").c_str());
     c3->SaveAs((plotDir+"/pdf/fake/fake_"+jobname+ "_" + ename+"_0-10.png").c_str());
@@ -160,12 +181,14 @@ void modify_2DRatio_graph(std::string jobname = "L3_crabbed_1176_wL2fix_PtEta_MT
     auto legend4 = new TLegend(0.7, 0.8,0.9,0.9);
     legend4->AddEntry(hoh,"Online Matched RECO","");
     legend4->Draw();
-    OE->DrawLatex(0.7,0.76,Form("Online = %i",(int)onEl));
-    RE->DrawLatex(0.7,0.7,Form("Reco = %i",(int)reEl));
+    accDrawer(l);
+    OE->DrawLatex(0.7,0.76,Form("Online = %i",(int)onEh));
+    RE->DrawLatex(0.7,0.7,Form("Reco = %i",(int)reEh));
     TT->DrawLatex(0.1,0.93,Form("Efficiency Plot %s 70-100",ename.c_str()));
     hoh->SetStats(0);
     gPad->Update();
     c4->Draw();
+
     c4->Modified();
     c4->SaveAs((plotDir+"/pdf/online/online_"+jobname+ "_" + ename+"_70-100.pdf").c_str());
     c4->SaveAs((plotDir+"/pdf/online/online_"+jobname+ "_" + ename+"_70-100.png").c_str());
@@ -202,8 +225,8 @@ void modify_2DRatio_graph(std::string jobname = "L3_crabbed_1176_wL2fix_PtEta_MT
     auto legend5 = new TLegend(0.7, 0.8,0.9,0.9);
     legend5->AddEntry(hfh,"Online FAKE","");
     legend5->Draw();
-    OFE->DrawLatex(0.7,0.73,Form("Fake = %i",(int)onfEl));
-    RE->DrawLatex(0.7,0.7,Form("Reco = %i",(int)reEl));
+    OFE->DrawLatex(0.7,0.73,Form("Fake = %i",(int)onfEh));
+    RE->DrawLatex(0.7,0.7,Form("Reco = %i",(int)reEh));
     TT->DrawLatex(0.1,0.93,Form("Ratio Plot %s 70-100",ename.c_str()));
     hfh->SetStats(0);
     c5->Draw();
@@ -237,3 +260,5 @@ void modify_2DRatio_graph(std::string jobname = "L3_crabbed_1176_wL2fix_PtEta_MT
   f1->Close();
   f2->Close();
 }
+
+
