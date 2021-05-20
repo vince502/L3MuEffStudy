@@ -124,17 +124,13 @@ void plotEffMuCent_PGvsONIA(std::string filen ="L3_2021May_113X_Pt_0p5_100"){
     //test
     //if (count >40000) break;
     myTree->GetEntry(iEntry);
-    //recoInfo.setEntry(iEntry, false, true);
-    //const auto particles = recoInfo.getParticles("muon");
     const auto particles = *OTC;
     if( !SetOEntry(rEvent, t1)) continue;
     int cEntries = TC->GetEntries();
     const auto centI =getHiBinFromhiHF(sumhf) ;// recoInfo.getCentrality()/2;
-    //std::cout << "CENT: " << centI << std::endl;
     if((count%1)==100000){std::cout << "[INFO] Core: ["<< idx <<"], doing entry: "<< count<< std::endl; /*std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
     std::cout <<"Idx: "<<oev<< " / "<<rev << std::endl;*/} 
     count++;
-    //std::vector<bool>  OMatchedV;
     std::vector< std::pair< bool, bool > > OMatchedV(cEntries, {false, false});
     for(int k =0; k < cEntries; k++){
       TLorentzVector* onmuon = (TLorentzVector*) TC->At(k);

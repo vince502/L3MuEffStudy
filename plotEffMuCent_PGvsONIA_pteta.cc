@@ -9,6 +9,7 @@
 #include <TH2D.h>
 #include <TStopwatch.h>
 #include "Cent_plotTurnOn.h"
+#include "util.h"
 
 struct fourh{
   TH2D hrec, hon, honf, hronf;
@@ -83,11 +84,15 @@ void plotEffMuCent_PGvsONIA_pteta(std::string filen ="L3_2021May_113X_Pt_0p5_100
   Int_t oEvent, oRun;
   UInt_t rEvent;
   int iCent;
+  float sumhf;
+  myTree->SetBranchAddress("SumET_HF", &sumhf);
   myTree->SetBranchAddress("eventNb", &rEvent);
   myTree->SetBranchAddress("Centrality", &iCent);
   t1->SetBranchAddress("Event", &oEvent);
   t1->SetBranchAddress("Run", &oRun);
   Long64_t onentries = t1->GetEntries();
+  Long64_t reentries = myTree->GetEntries();
+  std::cout << "ToTal Entry : RECO " << reentries << " , ONLINE "<< onentries << std::endl;
   static const int Max_mu_size = 32000;
   TClonesArray* TC = new TClonesArray("TLorentzVector", Max_mu_size);
   TClonesArray* OTC = new TClonesArray("TLorentzVector", Max_mu_size);
@@ -135,20 +140,21 @@ void plotEffMuCent_PGvsONIA_pteta(std::string filen ="L3_2021May_113X_Pt_0p5_100
   //Loop over muons
   for (const auto& iEntry : ROOT::TSeqUL(nEntries)){
     //test
-  //  if (count >300) break;
+    //if (count >1000) break;
     myTree->GetEntry(iEntry);
+    count++;
     //recoInfo.setEntry(iEntry, false, true);
     //const auto particles = recoInfo.getParticles("muon");
     const auto particles = *OTC;
     if( !SetOEntry(rEvent, t1)) continue;
     int cEntries = TC->GetEntries();
-    const auto centI =iCent ;// recoInfo.getCentrality()/2;
+    const auto centI =getHiBinFromhiHF(sumhf) ;// recoInfo.getCentrality()/2;
     double centralcut, periphcut;
-    centralcut = 10; periphcut = 40;
+    centralcut = 20; periphcut = 140;
     if( centI > centralcut && centI < periphcut){continue;}
-    if((count%10000)==0){std::cout << "[INFO] Core: ["<< idx <<"], doing entry: "<< count<< std::endl; /*std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
+    if((count%10)==0){std::cout << "[INFO] Core: ["<< idx <<"], doing entry: "<< count<< std::endl; /*std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
     std::cout <<"Idx: "<<oev<< " / "<<rev << std::endl;*/} 
-    count++;
+
     //std::vector<bool>  OMatchedV;
     std::vector< std::pair< bool, bool > > OMatchedV(cEntries, {false, false});
     for( auto recM : particles){
@@ -160,6 +166,7 @@ void plotEffMuCent_PGvsONIA_pteta(std::string filen ="L3_2021May_113X_Pt_0p5_100
 	hrh->Fill(recomuon->Pt(), recomuon->Eta());
       }
       bool isMatched = false;
+      bool isFilled = false;
       for(int k =0; k < cEntries; k++){
 	bool OMatched = false;
         TLorentzVector* onmuon = (TLorentzVector*) TC->At(k);
@@ -170,18 +177,21 @@ void plotEffMuCent_PGvsONIA_pteta(std::string filen ="L3_2021May_113X_Pt_0p5_100
              (1.55<=std::abs(onmuon->Eta())<2.2 && onmuon->Pt()>=4.25 -1.39*std::abs(onmuon->Eta())) ||
              (2.2<=std::abs(onmuon->Eta())<2.4 && onmuon->Pt()>=1.2) )
             //OMatchedV.push_back(false);
-             {OMatchedV[k].second=true; continue;}
-  	double dRcut = pname.find("L2") ? 0.3 : 0.1;
+             {OMatchedV[k].second=true; }
+	     else continue;
+  	double dRcut = (!(pname.find("L2")==std::string::npos)) ? 0.3 : 0.1;
   	if(onmuon->DeltaR(*recomuon) < dRcut && std::abs(onmuon->Pt()-recomuon->Pt())/recomuon->Pt() < 0.1){isMatched = true; OMatched = true;}
         OMatchedV[k].first = OMatchedV[k].first||OMatched;
-        if(isMatched){
+        if(isMatched&&!isFilled){
   	  if(centI <= centralcut){
   	    hol->Fill(recomuon->Pt(),recomuon->Eta());
   	  }
   	  else if(centI >= periphcut){
   	    hoh->Fill(recomuon->Pt(),recomuon->Eta());
 	  }
+	isFilled = true;
   	}
+
       }
     }
     for(int j=0; j < cEntries; j++){
