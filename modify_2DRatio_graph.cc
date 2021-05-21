@@ -15,7 +15,7 @@
 #include "util.h"
 
 void accDrawer(TLine lin){
-  lin.SetLineColor(kRed);
+/*  lin.SetLineColor(kRed);
   lin.SetLineWidth(3);
   lin.DrawLine(1.2, -2.4, 1.2, -2.2);
   lin.DrawLine(1.2, 2.2, 1.2, 2.4);
@@ -28,10 +28,10 @@ void accDrawer(TLine lin){
   lin.DrawLine(3.3, 1.10, 3.4, 0.3);
   lin.DrawLine(3.3, -1.10, 3.4, -0.3);
   lin.DrawLine(3.4, 0.30, 3.4, -0.3);
-
+*/
 };
 
-void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_0p5_100_L2_PtEta_MT_PGvsONIA"){
+void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_3_100_L2_PtEta_MT_PGvsONIA_Pt_3_100"){
   TFile* f1 = new TFile(Form("./outputratioL3_%s.root",jobname.c_str()), "open");
   TFile* f2 = new TFile(Form("./2DEffplots_%s.root",jobname.c_str()), "recreate");
   f1->cd();
@@ -45,18 +45,18 @@ void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_0p5_100_L2_P
     }
     gStyle->SetOptStat(kFALSE);
     gStyle->SetOptTitle(0);
-    TH2D* hol = (TH2D*) f1->Get(Form("%d_%s/%s_efficiency_0-10",index_key, ename.c_str(),ename.c_str()));
-    TH2D* hfl = (TH2D*) f1->Get(Form("%d_%s/%s_online_fake_ratio_0-10",index_key, ename.c_str(),ename.c_str()));
-    TH2D* hoh = (TH2D*) f1->Get(Form("%d_%s/%s_efficiency_70-100",index_key, ename.c_str(),ename.c_str()));
-    TH2D* hfh = (TH2D*) f1->Get(Form("%d_%s/%s_online_fake_ratio_70-100",index_key, ename.c_str(),ename.c_str()));
-    TH2D* hool = (TH2D*) f1->Get(Form("%d_%s/%s_online_matched_reco_0-10",index_key, ename.c_str(),ename.c_str()));
-    TH2D* hffl = (TH2D*) f1->Get(Form("%d_%s/%s_reco_notmatched_online_0-10",index_key, ename.c_str(),ename.c_str()));
-    TH2D* hrecl = (TH2D*) f1->Get(Form("%d_%s/%s_reco_0-10",index_key, ename.c_str(),ename.c_str()));
-    TH2D* hrofl = (TH2D*) f1->Get(Form("%d_%s/%s_online_0-10",index_key, ename.c_str(),ename.c_str()));
-    TH2D* hooh = (TH2D*) f1->Get(Form("%d_%s/%s_online_matched_reco_70-100",index_key, ename.c_str(),ename.c_str()));
-    TH2D* hffh = (TH2D*) f1->Get(Form("%d_%s/%s_reco_notmatched_online_70-100",index_key, ename.c_str(),ename.c_str()));
-    TH2D* hrech = (TH2D*) f1->Get(Form("%d_%s/%s_reco_70-100",index_key, ename.c_str(),ename.c_str()));
-    TH2D* hrofh = (TH2D*) f1->Get(Form("%d_%s/%s_online_70-100",index_key, ename.c_str(),ename.c_str()));
+    TH2D* hol = (TH2D*) f1->Get(Form("%s/%s_efficiency_0-10" , ename.c_str(),ename.c_str()));
+    TH2D* hfl = (TH2D*) f1->Get(Form("%s/%s_online_fake_ratio_0-10" , ename.c_str(),ename.c_str()));
+    TH2D* hoh = (TH2D*) f1->Get(Form("%s/%s_efficiency_70-100" , ename.c_str(),ename.c_str()));
+    TH2D* hfh = (TH2D*) f1->Get(Form("%s/%s_online_fake_ratio_70-100" , ename.c_str(),ename.c_str()));
+    TH2D* hool = (TH2D*) f1->Get(Form("%s/%s_online_matched_reco_0-10" , ename.c_str(),ename.c_str()));
+    TH2D* hffl = (TH2D*) f1->Get(Form("%s/%s_reco_notmatched_online_0-10" , ename.c_str(),ename.c_str()));
+    TH2D* hrecl = (TH2D*) f1->Get(Form("%s/%s_reco_0-10" , ename.c_str(),ename.c_str()));
+    TH2D* hrofl = (TH2D*) f1->Get(Form("%s/%s_online_0-10" , ename.c_str(),ename.c_str()));
+    TH2D* hooh = (TH2D*) f1->Get(Form("%s/%s_online_matched_reco_70-100" , ename.c_str(),ename.c_str()));
+    TH2D* hffh = (TH2D*) f1->Get(Form("%s/%s_reco_notmatched_online_70-100" , ename.c_str(),ename.c_str()));
+    TH2D* hrech = (TH2D*) f1->Get(Form("%s/%s_reco_70-100" , ename.c_str(),ename.c_str()));
+    TH2D* hrofh = (TH2D*) f1->Get(Form("%s/%s_online_70-100" , ename.c_str(),ename.c_str()));
     
     auto onEl = hool->GetEntries();
     auto onfEl = hffl->GetEntries();
@@ -86,7 +86,7 @@ void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_0p5_100_L2_P
     TLatex *TT = new TLatex();
     TT->SetTextSize(0.02);
     TT->SetNDC();
-    const std::string plotDir = "plot/"+jobname+"/"+ename;
+    const std::string plotDir =Form("plot/%s/%d_%s", jobname.c_str(),index_key,ename.c_str());
     makeDir(plotDir+ "/pdf/two/");
     makeDir(plotDir+ "/pdf/online/");
     makeDir(plotDir+ "/pdf/fake/");
@@ -108,8 +108,8 @@ void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_0p5_100_L2_P
     gPad->Update();
     c2->Draw();
     c2->Modified();
-    c2->SaveAs((plotDir+"/pdf/online/online_"+jobname+ "_" + ename+"_0-10.pdf").c_str());
-    c2->SaveAs((plotDir+"/pdf/online/online_"+jobname+ "_" + ename+"_0-10.png").c_str());
+    c2->SaveAs((plotDir+Form("/pdf/online/%d_online_", index_key)+jobname+ "_" + ename+"_0-10.pdf").c_str());
+    c2->SaveAs((plotDir+Form("/pdf/online/%d_online_", index_key)+jobname+ "_" + ename+"_0-10.png").c_str());
     c2->Clear();
 
     c2->SetCanvasSize(2200,1000);
@@ -132,7 +132,7 @@ void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_0p5_100_L2_P
     projholpt->Draw("e");
     c2->cd(2);
     projholeta->Draw("e");
-    c2->SaveAs((plotDir+"/pdf/online/online_"+jobname+"_"+ename+"_0-10_pteta.pdf").c_str());
+    c2->SaveAs((plotDir+Form("/pdf/online/%d_online_",index_key)+jobname+"_"+ename+"_0-10_pteta.pdf").c_str());
     c2->Clear();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,8 +151,8 @@ void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_0p5_100_L2_P
     c3->Draw();
 
     c3->Modified();
-    c3->SaveAs((plotDir+"/pdf/fake/fake_"+jobname+ "_" + ename+"_0-10.pdf").c_str());
-    c3->SaveAs((plotDir+"/pdf/fake/fake_"+jobname+ "_" + ename+"_0-10.png").c_str());
+    c3->SaveAs((plotDir+Form("/pdf/fake/%d_fake_",index_key)+jobname+ "_" + ename+"_0-10.pdf").c_str());
+    c3->SaveAs((plotDir+Form("/pdf/fake/%d_fake_",index_key)+jobname+ "_" + ename+"_0-10.png").c_str());
     c3->Clear();
 
     c3->SetCanvasSize(2200,1000);
@@ -175,7 +175,7 @@ void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_0p5_100_L2_P
     projhflpt->Draw("e");
     c3->cd(2);
     projhfleta->Draw("e");
-    c3->SaveAs((plotDir+"/pdf/fake/fake_"+jobname+"_"+ename+"_0-10_pteta.pdf").c_str());
+    c3->SaveAs((plotDir+Form("/pdf/fake/%d_fake_",index_key)+jobname+"_"+ename+"_0-10_pteta.pdf").c_str());
     c3->Clear();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -195,8 +195,8 @@ void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_0p5_100_L2_P
     c4->Draw();
 
     c4->Modified();
-    c4->SaveAs((plotDir+"/pdf/online/online_"+jobname+ "_" + ename+"_70-100.pdf").c_str());
-    c4->SaveAs((plotDir+"/pdf/online/online_"+jobname+ "_" + ename+"_70-100.png").c_str());
+    c4->SaveAs((plotDir+Form("/pdf/online/%d_online_",index_key)+jobname+ "_" + ename+"_70-100.pdf").c_str());
+    c4->SaveAs((plotDir+Form("/pdf/online/%d_online_",index_key)+jobname+ "_" + ename+"_70-100.png").c_str());
     c4->Clear();
 
     c4->SetCanvasSize(2200,1000);
@@ -219,7 +219,7 @@ void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_0p5_100_L2_P
     projhohpt->Draw("e");
     c4->cd(2);
     projhoheta->Draw("e");
-    c4->SaveAs((plotDir+"/pdf/online/online_"+jobname+"_"+ename+"_70-100_pteta.pdf").c_str());
+    c4->SaveAs((plotDir+Form("/pdf/online/%d_online_",index_key)+jobname+"_"+ename+"_70-100_pteta.pdf").c_str());
     c4->Clear();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -236,8 +236,8 @@ void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_0p5_100_L2_P
     hfh->SetStats(0);
     c5->Draw();
     c5->Modified();
-    c5->SaveAs((plotDir+"/pdf/fake/fake_"+jobname+ "_" + ename+"_70-100.pdf").c_str());
-    c5->SaveAs((plotDir+"/pdf/fake/fake_"+jobname+ "_" + ename+"_70-100.png").c_str());
+    c5->SaveAs((plotDir+Form("/pdf/fake/%d_fake_",index_key)+jobname+ "_" + ename+"_70-100.pdf").c_str());
+    c5->SaveAs((plotDir+Form("/pdf/fake/%d_fake_",index_key)+jobname+ "_" + ename+"_70-100.png").c_str());
     c5->Clear();
 
     c5->SetCanvasSize(2200,1000);
@@ -259,7 +259,7 @@ void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_0p5_100_L2_P
     projhfhpt->Draw("e");
     c5->cd(2);
     projhfheta->Draw("e");
-    c5->SaveAs((plotDir+"/pdf/fake/fake_"+jobname+"_"+ename+"_70-100_pteta.pdf").c_str());
+    c5->SaveAs((plotDir+Form("/pdf/fake/%d_fake_",index_key)+jobname+"_"+ename+"_70-100_pteta.pdf").c_str());
     c5->Clear();
   }
   f1->Close();
