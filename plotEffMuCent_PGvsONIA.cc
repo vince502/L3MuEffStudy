@@ -52,8 +52,7 @@ void makeDirFile(TFile *f1, const std::string& dir)
 };
 
 //Main Function
-void plotEffMuCent_PGvsONIA(std::string filen ="L3_2021May_113X_Pt_0p5_100"){
-  std::string reco = "Oniatree_MC_miniAOD_PG_Pt_0p5_100_Hydjet_5p02TeV_cmssw11_2_2_Run3Cond_merged.root";
+bool _func_plotEffMuCent_PGvsONIA(std::string filen, std::string reco, std::string ptTag){
 
   //initiate ratio map
   std::map<std::string, std::pair<TH1D, TH1D> > ratioM; 
@@ -72,28 +71,25 @@ void plotEffMuCent_PGvsONIA(std::string filen ="L3_2021May_113X_Pt_0p5_100"){
 
   //File Initiate
   //RecoReader recoInfo(reco, false);
-  TFile* recoFile = new TFile(("../L3MuEffStudy/Large_Files/"+reco).c_str(),"READ");
-  TTree* myTree = (TTree*) recoFile->Get("hionia/myTree");
-  TTreeReader r0 = TTreeReader("hionia/myTree");
-  const auto nEntries = myTree->GetEntries(); 
+  
+  OniaTreeSetup* onia= new OniaTreeSetup("../L3MuEffStudy/Large_Files",reco.c_str());
+
+  int nEntries = onia->myTree->GetEntries(); 
+
   TFile* l3t = new TFile(("../L3MuEffStudy/Large_Files/"+filen+".root").c_str(),"READ");
+
   TTree* t1 = (TTree*) l3t->Get("l3pAnalyzer/L3Track");
   TTreeReader r1 = TTreeReader("l3pAnalyzer/L3Track",l3t);
   TObjArray* blist = t1->GetListOfBranches();
   Int_t oEvent, oRun;
-  UInt_t rEvent;
-  float sumhf;
-  myTree->SetBranchAddress("eventNb", &rEvent);
-  myTree->SetBranchAddress("SumET_HF", &sumhf);
+
   t1->SetBranchAddress("Event", &oEvent);
   t1->SetBranchAddress("Run", &oRun);
   Long64_t onentries = t1->GetEntries();
   static const int Max_mu_size = 32000;
   TClonesArray* TC = new TClonesArray("TLorentzVector", Max_mu_size);
-  TClonesArray* OTC = new TClonesArray("TLorentzVector", Max_mu_size);
 
   int count=0;
-
 
   //Init Histograms
   TH1::SetDefaultSumw2;
@@ -111,56 +107,55 @@ void plotEffMuCent_PGvsONIA(std::string filen ="L3_2021May_113X_Pt_0p5_100"){
 
   //Online Build Index
   t1->BuildIndex("Event");
-  myTree->BuildIndex("eventNb");
 
   //Branch Set
   TBranch* br = (TBranch*) blist->At(idx+2);
   std::string pname = br->GetName();
   t1->SetBranchAddress(pname.c_str(), &TC);
-  myTree->SetBranchAddress("Reco_mu_4mom", &OTC);
+
+  onia->SetBranch();
+
 
   //Loop over muons
   for (const auto& iEntry : ROOT::TSeqUL(nEntries)){
     //test
-    //if (count >40000) break;
-    myTree->GetEntry(iEntry);
-    const auto particles = *OTC;
-    if( !SetOEntry(rEvent, t1)) continue;
+    //if (count >4) break;
+    onia->myTree->GetEntry(iEntry);
+    const auto particles = *onia->RTC;
+
+    if( !SetOEntry(onia->rEvent, t1)) continue;
     int cEntries = TC->GetEntries();
-    const auto centI =getHiBinFromhiHF(sumhf) ;// recoInfo.getCentrality()/2;
-    if((count%1)==100000){std::cout << "[INFO] Core: ["<< idx <<"], doing entry: "<< count<< std::endl; /*std::pair<Long64_t, Long64_t> evtInfo = recoInfo.getEventNumber();std::cout<< oEvent<<"/" << evtInfo.second << std::endl;
-    std::cout <<"Idx: "<<oev<< " / "<<rev << std::endl;*/} 
+    const auto centI =getHiBinFromhiHF(onia->sumhf)/2 ;// recoInfo.getCentrality()/2;
+
+    if((count%1000)==0) std::cout << "[INFO] Core: ["<< idx <<"], doing entry: "<< count<< std::endl; 
     count++;
     std::vector< std::pair< bool, bool > > OMatchedV(cEntries, {false, false});
+
     for(int k =0; k < cEntries; k++){
       TLorentzVector* onmuon = (TLorentzVector*) TC->At(k);
-      if ( (std::abs(onmuon->Eta())<0.3 && onmuon->Pt()>=3.4) ||
-  	    (0.3<=std::abs(onmuon->Eta())<1.1 && onmuon->Pt()>=3.3) ||
-  	    (1.1<=std::abs(onmuon->Eta())<1.4 && onmuon->Pt()>=7.7-4.0*std::abs(onmuon->Eta())) ||
-  	    (1.4<=std::abs(onmuon->Eta())<1.55 && onmuon->Pt()>=2.1) ||
-  	    (1.55<=std::abs(onmuon->Eta())<2.2 && onmuon->Pt()>=4.25 -1.39*std::abs(onmuon->Eta())) ||
-  	    (2.2<=std::abs(onmuon->Eta())<2.4 && onmuon->Pt()>=1.2) )
-	    //OMatchedV.push_back(false);
-  	    {OMatchedV[k].second=true;}
+      if (accPass(onmuon->Pt(), onmuon->Eta())) OMatchedV[k].second=true;
     }
-    for( auto recM : particles){
-      TLorentzVector* recomuon = (TLorentzVector*) recM;
+
+    for( auto recidx : ROOT::TSeqI(onia->recMsize) ){
+      TLorentzVector* recomuon = (TLorentzVector*) particles.At(recidx);
      // std::cout << " [RECO] Pt: " << recomuon->Pt() << ", eta: " << recomuon->Eta() << ", Mass: " <<  recomuon->M() << std::endl;
-      hr->Fill(centI); 
+      if(accPass(recomuon->Pt(), recomuon->Eta()) && HSoftID18_pass(onia->Reco_mu_nTrkWMea[recidx], onia->Reco_mu_nPixWMea[recidx], onia->Reco_mu_dxy[recidx], onia->Reco_mu_dz[recidx] )) hr->Fill(centI); 
+      else continue; 
       bool isMatched = false;
+
       for(int k=0; k<cEntries; k++){
 	bool OMatched = false;
         TLorentzVector* onmuon = (TLorentzVector*) TC->At(k);
        // std::cout << "[ONLINE] Pt: " << onmuon->Pt() << ", eta: " << onmuon->Eta() << ", Mass: " <<  onmuon->M() << std::endl;
 	if (!OMatchedV[k].second){continue;}
-	double dRcut = pname.find("L2") ? 0.3 : 0.1;
+	double dRcut = (!(pname.find("L2")==std::string::npos)) ? 0.3 : 0.1;
 	if(onmuon->DeltaR(*recomuon) < dRcut && std::abs(onmuon->Pt()-recomuon->Pt())/recomuon->Pt() < 0.1){isMatched = true; OMatched = true; } //std::cout << "Is Matched!"<<std::endl;
-
         //OMatchedV[k] = OMatchedV[k]||OMatched;
         OMatchedV[k].first = OMatchedV[k].first||OMatched;
       }
       if(isMatched){ho->Fill(centI);}
     }
+
     for(int j=0; j < cEntries; j++){
       if (!OMatchedV[j].second){continue;}
       hrof->Fill(centI);
@@ -186,6 +181,7 @@ void plotEffMuCent_PGvsONIA(std::string filen ="L3_2021May_113X_Pt_0p5_100"){
   
   std::cout<< std::endl;
   std::cout << "DONE filling ratio plot: " << pname.c_str() <<std::endl;
+  delete (onia);
   return ratioP;
   };
   
@@ -197,7 +193,7 @@ void plotEffMuCent_PGvsONIA(std::string filen ="L3_2021May_113X_Pt_0p5_100"){
   }
   std::cout << "DONE allocating ratio maps" << std::endl;
   //modify plots & draw
-  TFile* out = new TFile(("outputratioL3_"+filen+"L2_MT_gyeonghwan_code_changed_PGvsONIAfull.root").c_str(),"recreate");
+  TFile* out = new TFile(("outputratioL3_"+filen+Form("L2_MT_gyeonghwan_code_changed_PGvsONIA_%s.root",ptTag.c_str())).c_str(),"recreate");
   std::vector<struct fourh>::iterator vitt = vit.begin();
   for(std::map<std::string, std::pair<TH1D, TH1D> >::iterator itt = ratioM.begin(); itt != ratioM.end(); itt++){
 
@@ -243,5 +239,14 @@ void plotEffMuCent_PGvsONIA(std::string filen ="L3_2021May_113X_Pt_0p5_100"){
   }
   out->Write();
   out->Close();
+
   std::cout << "Done Saving" << std::endl;
+  return true;
+}
+
+
+void plotEffMuCent_PGvsONIA(){
+	_func_plotEffMuCent_PGvsONIA("L3_2021May_113X_Pt_0p5_3", "Oniatree_MC_miniAOD_PG_Pt_0p5_3_Hydjet_5p02TeV_cmssw11_2_2_Run3Cond_merged.root","Pt_0p5_3");
+	_func_plotEffMuCent_PGvsONIA("L3_2021May_113X_Pt_3_100", "Oniatree_MC_miniAOD_PG_Pt_3_100_Hydjet_5p02TeV_cmssw11_2_2_Run3Cond_merged.root", "Pt_3_100");
+
 }

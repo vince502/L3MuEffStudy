@@ -12,6 +12,7 @@
 #include <TLegend.h>
 #include <TList.h>
 #include "Cent_plotTurnOn.h"
+#include "util.h"
 
 void accDrawer(TLine lin){
   lin.SetLineColor(kRed);
@@ -32,26 +33,30 @@ void accDrawer(TLine lin){
 
 void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_0p5_100_L2_PtEta_MT_PGvsONIA"){
   TFile* f1 = new TFile(Form("./outputratioL3_%s.root",jobname.c_str()), "open");
-  TFile* f2 = new TFile(Form("./Ratioplots_%s.root",jobname.c_str()), "recreate");
+  TFile* f2 = new TFile(Form("./2DEffplots_%s.root",jobname.c_str()), "recreate");
   f1->cd();
   TList* l1 = gDirectory->GetListOfKeys();
   for( auto keys : *l1){
     TH1::SetDefaultSumw2;
     std::string ename = keys->GetName();
+    int index_key;
+    for( auto pdkey : ProdList){
+      if (ename.find(pdkey.second.first.c_str())!= std::string::npos) index_key = pdkey.first;
+    }
     gStyle->SetOptStat(kFALSE);
     gStyle->SetOptTitle(0);
-    TH2D* hol = (TH2D*) f1->Get(Form("%s/%s_efficiency_0-10",ename.c_str(),ename.c_str()));
-    TH2D* hfl = (TH2D*) f1->Get(Form("%s/%s_online_fake_ratio_0-10",ename.c_str(),ename.c_str()));
-    TH2D* hoh = (TH2D*) f1->Get(Form("%s/%s_efficiency_70-100",ename.c_str(),ename.c_str()));
-    TH2D* hfh = (TH2D*) f1->Get(Form("%s/%s_online_fake_ratio_70-100",ename.c_str(),ename.c_str()));
-    TH2D* hool = (TH2D*) f1->Get(Form("%s/%s_online_matched_reco_0-10",ename.c_str(),ename.c_str()));
-    TH2D* hffl = (TH2D*) f1->Get(Form("%s/%s_reco_notmatched_online_0-10",ename.c_str(),ename.c_str()));
-    TH2D* hrecl = (TH2D*) f1->Get(Form("%s/%s_reco_0-10",ename.c_str(),ename.c_str()));
-    TH2D* hrofl = (TH2D*) f1->Get(Form("%s/%s_online_0-10",ename.c_str(),ename.c_str()));
-    TH2D* hooh = (TH2D*) f1->Get(Form("%s/%s_online_matched_reco_70-100",ename.c_str(),ename.c_str()));
-    TH2D* hffh = (TH2D*) f1->Get(Form("%s/%s_reco_notmatched_online_70-100",ename.c_str(),ename.c_str()));
-    TH2D* hrech = (TH2D*) f1->Get(Form("%s/%s_reco_70-100",ename.c_str(),ename.c_str()));
-    TH2D* hrofh = (TH2D*) f1->Get(Form("%s/%s_online_70-100",ename.c_str(),ename.c_str()));
+    TH2D* hol = (TH2D*) f1->Get(Form("%d_%s/%s_efficiency_0-10",index_key, ename.c_str(),ename.c_str()));
+    TH2D* hfl = (TH2D*) f1->Get(Form("%d_%s/%s_online_fake_ratio_0-10",index_key, ename.c_str(),ename.c_str()));
+    TH2D* hoh = (TH2D*) f1->Get(Form("%d_%s/%s_efficiency_70-100",index_key, ename.c_str(),ename.c_str()));
+    TH2D* hfh = (TH2D*) f1->Get(Form("%d_%s/%s_online_fake_ratio_70-100",index_key, ename.c_str(),ename.c_str()));
+    TH2D* hool = (TH2D*) f1->Get(Form("%d_%s/%s_online_matched_reco_0-10",index_key, ename.c_str(),ename.c_str()));
+    TH2D* hffl = (TH2D*) f1->Get(Form("%d_%s/%s_reco_notmatched_online_0-10",index_key, ename.c_str(),ename.c_str()));
+    TH2D* hrecl = (TH2D*) f1->Get(Form("%d_%s/%s_reco_0-10",index_key, ename.c_str(),ename.c_str()));
+    TH2D* hrofl = (TH2D*) f1->Get(Form("%d_%s/%s_online_0-10",index_key, ename.c_str(),ename.c_str()));
+    TH2D* hooh = (TH2D*) f1->Get(Form("%d_%s/%s_online_matched_reco_70-100",index_key, ename.c_str(),ename.c_str()));
+    TH2D* hffh = (TH2D*) f1->Get(Form("%d_%s/%s_reco_notmatched_online_70-100",index_key, ename.c_str(),ename.c_str()));
+    TH2D* hrech = (TH2D*) f1->Get(Form("%d_%s/%s_reco_70-100",index_key, ename.c_str(),ename.c_str()));
+    TH2D* hrofh = (TH2D*) f1->Get(Form("%d_%s/%s_online_70-100",index_key, ename.c_str(),ename.c_str()));
     
     auto onEl = hool->GetEntries();
     auto onfEl = hffl->GetEntries();
