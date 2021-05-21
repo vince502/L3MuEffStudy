@@ -53,8 +53,10 @@ void makeDirFile(TFile *f1, const std::string& dir)
 };
 
 //Main Function
+
 bool _func_plotEffMuCent_PGvsONIA_pteta(std::string filen, std::string reco, std::string ptTag ){
   
+
 
   //initiate ratio map
   std::map<std::string, std::pair<std::pair<TH2D, TH2D>, std::pair<TH2D, TH2D> > > ratioM;
@@ -70,10 +72,12 @@ bool _func_plotEffMuCent_PGvsONIA_pteta(std::string filen, std::string reco, std
   TH1::AddDirectory(kFALSE);
   auto fillRatio = [=](int idx)
   {
+
   OniaTreeSetup* onia= new OniaTreeSetup("../L3MuEffStudy/Large_Files",reco.c_str());
   //File Initiate
   //RecoReader recoInfo(reco, false);
   int nEntries = onia->myTree->GetEntries();
+
   TFile* l3t = new TFile(("../L3MuEffStudy/Large_Files/"+filen+".root").c_str(),"READ");
   TTree* t1 = (TTree*) l3t->Get("l3pAnalyzer/L3Track");
   TTreeReader r1 = TTreeReader("l3pAnalyzer/L3Track",l3t);
@@ -108,8 +112,10 @@ bool _func_plotEffMuCent_PGvsONIA_pteta(std::string filen, std::string reco, std
   hofh->Sumw2();
   hrofh->Sumw2();
   
+
   //Online Build Index
   t1->BuildIndex("Event");
+
 
   //Branch Set
   TBranch* br = (TBranch*) blist->At(idx+2);
@@ -117,6 +123,7 @@ bool _func_plotEffMuCent_PGvsONIA_pteta(std::string filen, std::string reco, std
   t1->SetBranchAddress(pname.c_str(), &TC);
   
   onia->SetBranch();
+
 
   //Loop over muons
   for (const auto& iEntry : ROOT::TSeqUL(nEntries)){
@@ -150,8 +157,8 @@ bool _func_plotEffMuCent_PGvsONIA_pteta(std::string filen, std::string reco, std
       for(int k =0; k < cEntries; k++){
 	bool OMatched = false;
         TLorentzVector* onmuon = (TLorentzVector*) TC->At(k);
-	if( accPass(onmuon->Pt(), onmuon->Eta()) ) OMatchedV[k].second=true;
-	else continue;
+	     if( accPass(onmuon->Pt(), onmuon->Eta()) ) OMatchedV[k].second=true;
+	     else continue;
 
   	double dRcut = (!(pname.find("L2")==std::string::npos)) ? 0.3 : 0.1;
   	if(onmuon->DeltaR(*recomuon) < dRcut && std::abs(onmuon->Pt()-recomuon->Pt())/recomuon->Pt() < 0.1){isMatched = true; OMatched = true;}
@@ -235,7 +242,9 @@ bool _func_plotEffMuCent_PGvsONIA_pteta(std::string filen, std::string reco, std
   }
   std::cout << "DONE allocating ratio maps" << std::endl;
   //modify plots & draw
+
   TFile* out = new TFile(("outputratioL3_"+filen+Form("_L2_PtEta_MT_PGvsONIA_%s.root", ptTag.c_str())).c_str(),"recreate");
+
   std::vector<std::pair<struct fourh, struct fourh> >::iterator vitt = vit.begin();
   for(std::map<std::string, std::pair<std::pair<TH2D, TH2D>, std::pair<TH2D, TH2D> > >::iterator itt = ratioM.begin(); itt != ratioM.end(); itt++){
 

@@ -15,7 +15,9 @@
 #include "util.h"
 
 void accDrawer(TLine lin){
+
 /*  lin.SetLineColor(kRed);
+
   lin.SetLineWidth(3);
   lin.DrawLine(1.2, -2.4, 1.2, -2.2);
   lin.DrawLine(1.2, 2.2, 1.2, 2.4);
@@ -28,12 +30,14 @@ void accDrawer(TLine lin){
   lin.DrawLine(3.3, 1.10, 3.4, 0.3);
   lin.DrawLine(3.3, -1.10, 3.4, -0.3);
   lin.DrawLine(3.4, 0.30, 3.4, -0.3);
+
 */
 };
 
 void modify_2DRatio_graph(std::string jobname = "L3_2021May_113X_Pt_3_100_L2_PtEta_MT_PGvsONIA_Pt_3_100"){
   TFile* f1 = new TFile(Form("./outputratioL3_%s.root",jobname.c_str()), "open");
   TFile* f2 = new TFile(Form("./2DEffplots_%s.root",jobname.c_str()), "recreate");
+
   f1->cd();
   TList* l1 = gDirectory->GetListOfKeys();
   for( auto keys : *l1){

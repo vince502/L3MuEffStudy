@@ -52,7 +52,9 @@ void makeDirFile(TFile *f1, const std::string& dir)
 };
 
 //Main Function
+
 bool _func_plotEffMuCent_PGvsONIA(std::string filen, std::string reco, std::string ptTag){
+
 
   //initiate ratio map
   std::map<std::string, std::pair<TH1D, TH1D> > ratioM; 
@@ -71,6 +73,7 @@ bool _func_plotEffMuCent_PGvsONIA(std::string filen, std::string reco, std::stri
 
   //File Initiate
   //RecoReader recoInfo(reco, false);
+
   
   OniaTreeSetup* onia= new OniaTreeSetup("../L3MuEffStudy/Large_Files",reco.c_str());
 
@@ -78,10 +81,12 @@ bool _func_plotEffMuCent_PGvsONIA(std::string filen, std::string reco, std::stri
 
   TFile* l3t = new TFile(("../L3MuEffStudy/Large_Files/"+filen+".root").c_str(),"READ");
 
+
   TTree* t1 = (TTree*) l3t->Get("l3pAnalyzer/L3Track");
   TTreeReader r1 = TTreeReader("l3pAnalyzer/L3Track",l3t);
   TObjArray* blist = t1->GetListOfBranches();
   Int_t oEvent, oRun;
+
 
   t1->SetBranchAddress("Event", &oEvent);
   t1->SetBranchAddress("Run", &oRun);
@@ -89,7 +94,9 @@ bool _func_plotEffMuCent_PGvsONIA(std::string filen, std::string reco, std::stri
   static const int Max_mu_size = 32000;
   TClonesArray* TC = new TClonesArray("TLorentzVector", Max_mu_size);
 
+
   int count=0;
+
 
   //Init Histograms
   TH1::SetDefaultSumw2;
@@ -108,17 +115,21 @@ bool _func_plotEffMuCent_PGvsONIA(std::string filen, std::string reco, std::stri
   //Online Build Index
   t1->BuildIndex("Event");
 
+
   //Branch Set
   TBranch* br = (TBranch*) blist->At(idx+2);
   std::string pname = br->GetName();
   t1->SetBranchAddress(pname.c_str(), &TC);
 
+
   onia->SetBranch();
+
 
 
   //Loop over muons
   for (const auto& iEntry : ROOT::TSeqUL(nEntries)){
     //test
+
     //if (count >4) break;
     onia->myTree->GetEntry(iEntry);
     const auto particles = *onia->RTC;
@@ -143,18 +154,23 @@ bool _func_plotEffMuCent_PGvsONIA(std::string filen, std::string reco, std::stri
       else continue; 
       bool isMatched = false;
 
+
       for(int k=0; k<cEntries; k++){
 	bool OMatched = false;
         TLorentzVector* onmuon = (TLorentzVector*) TC->At(k);
        // std::cout << "[ONLINE] Pt: " << onmuon->Pt() << ", eta: " << onmuon->Eta() << ", Mass: " <<  onmuon->M() << std::endl;
 	if (!OMatchedV[k].second){continue;}
+
 	double dRcut = (!(pname.find("L2")==std::string::npos)) ? 0.3 : 0.1;
 	if(onmuon->DeltaR(*recomuon) < dRcut && std::abs(onmuon->Pt()-recomuon->Pt())/recomuon->Pt() < 0.1){isMatched = true; OMatched = true; } //std::cout << "Is Matched!"<<std::endl;
+
         //OMatchedV[k] = OMatchedV[k]||OMatched;
         OMatchedV[k].first = OMatchedV[k].first||OMatched;
       }
       if(isMatched){ho->Fill(centI);}
     }
+
+
 
     for(int j=0; j < cEntries; j++){
       if (!OMatchedV[j].second){continue;}
@@ -181,7 +197,9 @@ bool _func_plotEffMuCent_PGvsONIA(std::string filen, std::string reco, std::stri
   
   std::cout<< std::endl;
   std::cout << "DONE filling ratio plot: " << pname.c_str() <<std::endl;
+
   delete (onia);
+
   return ratioP;
   };
   
@@ -193,7 +211,9 @@ bool _func_plotEffMuCent_PGvsONIA(std::string filen, std::string reco, std::stri
   }
   std::cout << "DONE allocating ratio maps" << std::endl;
   //modify plots & draw
+
   TFile* out = new TFile(("outputratioL3_"+filen+Form("L2_MT_gyeonghwan_code_changed_PGvsONIA_%s.root",ptTag.c_str())).c_str(),"recreate");
+
   std::vector<struct fourh>::iterator vitt = vit.begin();
   for(std::map<std::string, std::pair<TH1D, TH1D> >::iterator itt = ratioM.begin(); itt != ratioM.end(); itt++){
 
@@ -239,6 +259,7 @@ bool _func_plotEffMuCent_PGvsONIA(std::string filen, std::string reco, std::stri
   }
   out->Write();
   out->Close();
+
 
   std::cout << "Done Saving" << std::endl;
   return true;
