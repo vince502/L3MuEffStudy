@@ -61,12 +61,13 @@ bool _func_plotEffMuCent_PGvsONIA_pteta(std::string filen, std::string reco, std
   //initiate ratio map
   std::map<std::string, std::pair<std::pair<TH2D, TH2D>, std::pair<TH2D, TH2D> > > ratioM;
   int modulen = 12;
+  int max_cores = 4;
   std::vector<std::pair<struct fourh, struct fourh> > vit;
 
   //Initiate Multi-Threading
   const int nCores = modulen;
   ROOT::EnableImplicitMT();
-  ROOT::TProcessExecutor mpe(nCores);
+  ROOT::TProcessExecutor mpe(max_cores);
  
   //Multi-THread fill ratio function
   TH1::AddDirectory(kFALSE);
