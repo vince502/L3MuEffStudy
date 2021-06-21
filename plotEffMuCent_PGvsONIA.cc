@@ -14,12 +14,15 @@ struct fourh{
   TH1D hrec, hon, honf, hronf;
 };
 
+//OnlineTree Index Getter run & event
 bool SetOEntry(const std::pair<Long64_t, Long64_t>& recoevt, TTree* t1){
   const auto index = t1->GetEntryNumberWithIndex(recoevt.first, recoevt.second);
   if (index<0) { return false;}
   t1->GetEntry(index);
   return true;
 };
+
+//OnlineTree Index Getter only event
 bool SetOEntry(const Long64_t& recoevt, TTree* t1){
   const auto index = t1->GetEntryNumberWithIndex(recoevt);
   if (index<0) { return false;}
@@ -101,6 +104,7 @@ bool _func_plotEffMuCent_PGvsONIA(std::string filen, std::string reco, std::stri
 
   //Init Histograms
   TH1::SetDefaultSumw2;
+  //Declaration of histograms for reco (hr), reco fill whenever a online object in that event (ho), online fake (fof), online objects (hrof)
   TH1D* hr = new TH1D("hr","hr", 20,0, 100);
   TH1D* ho = new TH1D("ho","ho", 20,0, 100);
   TH1D* hof = new TH1D("hof","hof", 20,0, 100);
@@ -162,6 +166,7 @@ bool _func_plotEffMuCent_PGvsONIA(std::string filen, std::string reco, std::stri
        // std::cout << "[ONLINE] Pt: " << onmuon->Pt() << ", eta: " << onmuon->Eta() << ", Mass: " <<  onmuon->M() << std::endl;
 	if (!OMatchedV[k].second){continue;}
 
+	//apply dR cuts for appropriate triggers 
 	double dRcut = (!(pname.find("L2")==std::string::npos)) ? 0.3 : 0.1;
 	if(onmuon->DeltaR(*recomuon) < dRcut && std::abs(onmuon->Pt()-recomuon->Pt())/recomuon->Pt() < 0.1){isMatched = true; OMatched = true; } //std::cout << "Is Matched!"<<std::endl;
 
