@@ -87,7 +87,6 @@ bool _func_plotEffMuCent_PGvsONIA(std::string filen, std::string reco, std::stri
 
 
   TTree* t1 = (TTree*) l3t->Get("l3pAnalyzer/L3Track");
-  TTreeReader r1 = TTreeReader("l3pAnalyzer/L3Track",l3t);
   TObjArray* blist = t1->GetListOfBranches();
   Int_t oEvent, oRun;
 
